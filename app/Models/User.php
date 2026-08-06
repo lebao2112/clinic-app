@@ -30,4 +30,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role_id', // Add role_id here
+    ];
+
+    // A User belongs to exactly one Role
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 }
