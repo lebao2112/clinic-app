@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         // Call the RoleSeeder to populate roles table
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
         ]);
     }
 }
