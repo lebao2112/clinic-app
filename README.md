@@ -29,3 +29,44 @@ Copy file `.env.example` thành `.env` để cấu hình dự án:
 * **`PAYPAL_CLIENT_ID`**: Khóa Client ID lấy từ PayPal Developer Dashboard.
 * **`PAYPAL_SECRET`**: Khóa bảo mật (Secret Key) của PayPal. 
 * **`PAYPAL_CURRENCY`**: Đơn vị tiền tệ thanh toán (VD: `USD`).
+
+# Kiến trúc hệ thống
+
+## 🏗 Kiến trúc đã chọn
+Dự án áp dụng **Kiến trúc B: Controller + Service Pattern**.
+
+Trong đó:
+- **Controller:** Đóng vai trò như "người lễ tân". Chỉ chịu trách nhiệm tiếp nhận HTTP Request, xác thực dữ liệu đầu vào (Validation / FormRequest), gọi tới Service tương ứng và trả về HTTP Response (JSON). Tuyệt đối không chứa logic nghiệp vụ tại đây.
+- **Service:** Đóng vai trò như "nhà bếp". Đảm nhận toàn bộ việc xử lý logic nghiệp vụ (Business Logic), tính toán, và tương tác với các Model (Database).
+
+## 💡 Lý do lựa chọn
+1. **Tách biệt trách nhiệm (Separation of Concerns):** Giúp Controller cực kỳ mỏng và gọn gàng (Thin Controller). Khi cần sửa logic nghiệp vụ, developer chỉ cần tìm đến file Service mà không sợ ảnh hưởng đến luồng nhận/trả request.
+2. **Tối ưu hóa nguồn lực (Tránh Over-engineering):** Mặc dù Kiến trúc C (thêm Repository) giúp trừu tượng hóa tầng Data Access, nhưng bản thân Eloquent ORM của Laravel đã vận hành rất mạnh mẽ và linh hoạt. Việc dùng thêm Repository cho dự án này có thể gây thừa thãi code (boilerplate) không cần thiết.
+3. **Tính tái sử dụng cao (Reusability):** Một hàm xử lý trong Service có thể được gọi từ nhiều Controller khác nhau (ví dụ: gọi từ API Controller, hoặc gọi từ một Command line trên terminal) mà không phải viết lại code.
+4. **Dễ dàng Testing:** Logic nằm độc lập ở Service giúp việc viết Unit Test trở nên dễ dàng hơn nhiều so với việc test code nằm kẹt bên trong Controller.
+
+## 🔄 Sơ đồ luồng Request (Request Flow)
+
+Luồng đi của một request trong hệ thống sẽ tuân thủ nghiêm ngặt theo các bước sau:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Router as Route & Middleware
+    participant Controller
+    participant Service
+    participant Model as Eloquent Model
+    participant DB as Database
+
+    Client->>Router: Gửi HTTP Request
+    Router->>Router: Kiểm tra Auth & Permission (EnsurePermission)
+    Router->>Controller: Chuyển tiếp Request (nếu hợp pháp)
+    Controller->>Controller: Validate Data (Form Request)
+    Controller->>Service: Truyền dữ liệu đã validate vào Service
+    Service->>Model: Xử lý logic & Yêu cầu dữ liệu
+    Model->>DB: Thực thi truy vấn SQL
+    DB-->>Model: Trả kết quả truy vấn
+    Model-->>Service: Trả dữ liệu dạng Object/Collection
+    Service-->>Controller: Trả kết quả xử lý nghiệp vụ
+    Controller-->>Client: Trả về HTTP Response (JSON)
