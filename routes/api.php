@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SpecialtyController; 
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,4 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Full CRUD routes (includes index, store, show, update, destroy)
         Route::apiResource('users', UserController::class);
     });
+
+    // Specialty Management Routes (Require valid token AND SPECIALTIES.* permission)
+    Route::middleware('permission:SPECIALTIES.*')->group(function () {
+        Route::apiResource('specialties', SpecialtyController::class);
+    });
+   
 });
