@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SpecialtyController; 
+use App\Http\Controllers\DoctorController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,6 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Specialty Management Routes (Require valid token AND SPECIALTIES.* permission)
     Route::middleware('permission:SPECIALTIES.*')->group(function () {
         Route::apiResource('specialties', SpecialtyController::class);
+    });
+
+    // Doctor Management Routes (Require valid token AND DOCTORS.* permission)
+    Route::middleware('permission:DOCTORS.*')->group(function () {
+        Route::apiResource('doctors', DoctorController::class);
     });
    
 });
