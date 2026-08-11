@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use app\Constants\Message; 
 
 class EnsurePermission
 {
@@ -25,7 +26,8 @@ class EnsurePermission
 
         // 1. Check if the user is authenticated 
         if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+
+            return response()->json(['message' => Message::UNAUTHORIZED], 401);
         }
 
         // 2. Get the current action name from the Route (e.g., App\Http\Controllers\UserController@index)
@@ -51,7 +53,7 @@ class EnsurePermission
         
         if (!$user->role) {
             return response()->json([
-                'message' => 'Forbidden. Account has no role assigned.'
+                'message' => Message::NO_ROLE_ASSIGNED
             ], 403);
         }
 
@@ -61,7 +63,7 @@ class EnsurePermission
 
         if (!$hasPermission) {
             return response()->json([
-                'message' => 'Forbidden. You do not have permission: ' . $requiredPermission
+                'message' => Message::FORBIDDEN . $requiredPermission
             ], 403);
         }
 
