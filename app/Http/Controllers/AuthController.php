@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Constants\Message; 
 
 class AuthController extends Controller
 {
@@ -18,7 +19,7 @@ class AuthController extends Controller
 
         // Attempt to authenticate the user
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => Message::INVALID_CREDENTIALS], 401);
         }
 
         // Retrieve the authenticated user
@@ -29,7 +30,7 @@ class AuthController extends Controller
 
         // Return the token response
         return response()->json([
-            'message' => 'Login successful',
+            'message' => Message::LOGIN_SUCCESS, 
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -43,9 +44,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Revoke the user's current token
         $request->user()->currentAccessToken()->delete();
         
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json(['message' => Message::LOGOUT_SUCCESS]);
     }
 }

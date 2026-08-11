@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Constants\Message;
 
 class BaseRequest extends FormRequest
 {
@@ -24,7 +25,7 @@ class BaseRequest extends FormRequest
         // Throw an exception with a standardized JSON envelope for 422 errors
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => 'Validation failed',
+            'message' => Message::VALIDATION_FAILED,
             'errors'  => $validator->errors() // Attach the specific field errors
         ], 422));
     }
