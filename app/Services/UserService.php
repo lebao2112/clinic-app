@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Constants\Message;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -66,7 +67,7 @@ class UserService
                 if ($activeAdminCount <= 1) {
                     throw new HttpResponseException(response()->json([
                         'success' => false,
-                        'message' => 'Action denied: Cannot deactivate, delete, or change the role of the last active ADMIN.',
+                        'message' => Message::LAST_ADMIN_ACTION_DENIED, 
                         'errors'  => [
                             'role_id' => ['You are the last active ADMIN in the system.']
                         ]

@@ -2,12 +2,14 @@
 
 namespace App\Traits;
 
+use App\Constants\Message;
+
 trait ApiResponse
 {
     /**
      * Return a success JSON response.
      */
-    public function successResponse($data = null, $message = 'Success', $statusCode = 200, $meta = null)
+    public function successResponse($data = null, $message = Message::SUCCESS, $statusCode = 200, $meta = null)
     {
         $response = [
             'success' => true,
@@ -26,7 +28,7 @@ trait ApiResponse
     /**
      * Return an error JSON response.
      */
-    public function errorResponse($message = 'An error occurred', $statusCode = 400, $errors = null)
+    public function errorResponse($message = Message::ERROR, $statusCode = 400, $errors = null)
     {
         $response = [
             'success' => false,
