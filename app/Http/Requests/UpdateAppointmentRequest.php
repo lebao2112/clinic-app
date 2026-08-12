@@ -20,7 +20,6 @@ class UpdateAppointmentRequest extends FormRequest
             'patient_id'   => 'sometimes|required|exists:patients,id',
             'doctor_id'    => 'sometimes|required|exists:doctors,id',
             'scheduled_at' => 'sometimes|required|date',
-            'status'       => 'sometimes|required|in:scheduled,confirmed,cancelled,completed',
             'reason'       => 'nullable|string|max:255',
         ];
     }

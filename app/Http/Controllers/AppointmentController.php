@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
+use App\Http\Requests\ChangeAppointmentStatusRequest; 
 use App\Http\Resources\AppointmentResource;
 use App\Services\AppointmentService;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use App\Constants\Message;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use InvalidArgumentException; 
 use Exception;
 
 class AppointmentController extends Controller
@@ -87,6 +89,25 @@ class AppointmentController extends Controller
             return $this->successResponse(null, Message::SUCCESS);
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(Message::NOT_FOUND, 404);
+        } catch (Exception $e) {
+            return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
+        }
+    }
+
+    public function changeStatus(ChangeAppointmentStatusRequest $request, $id)
+    {
+        try {
+            $appointment = $this->appointmentService->findAppointmentById($id);
+            $updatedAppointment = $this->appointmentService->changeStatus($appointment, $request->status);
+            
+            return $this->successResponse(new AppointmentResource($updatedAppointment), Message::SUCCESS);
+            
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(Message::NOT_FOUND, 404);
+            
+        } catch (InvalidArgumentException $e) {
+            return $this->errorResponse(Message::VALIDATION_FAILED . ': ' . $e->getMessage(), 422);
+            
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }

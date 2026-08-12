@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use InvalidArgumentException;
 
 class AppointmentService
 {
@@ -37,5 +38,25 @@ class AppointmentService
     public function deleteAppointment(Appointment $appointment)
     {
         return $appointment->delete();
+    }
+
+    public function changeStatus(Appointment $appointment, string $newStatus)
+    {
+        $validTransitions = [
+            'scheduled' => ['confirmed', 'cancelled'],
+            'confirmed' => ['completed', 'cancelled'],
+            'cancelled' => [], 
+            'completed' => [], 
+        ];
+
+        $currentStatus = $appointment->status;
+
+        if (!in_array($newStatus, $validTransitions[$currentStatus])) {
+            throw new InvalidArgumentException("State transition not allowed from {$currentStatus} to {$newStatus}.");
+        }
+
+        $appointment->update(['status' => $newStatus]);
+        
+        return $appointment->load(['patient', 'doctor']);
     }
 }

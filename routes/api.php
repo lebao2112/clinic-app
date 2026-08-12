@@ -20,5 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('specialties', SpecialtyController::class);
     Route::apiResource('doctors', DoctorController::class);
     Route::apiResource('patients', PatientController::class);
+    Route::patch('appointments/{id}/status', [AppointmentController::class, 'changeStatus']);
     Route::apiResource('appointments', AppointmentController::class);
 });
