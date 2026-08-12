@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Constants\Message;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($e instanceof NotFoundHttpException) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Endpoint or resource not found',
+                        'message' => Message::NOT_FOUND,
                         'data' => null
                     ], 404);
                 }
@@ -32,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 // Handle 500 Internal Server Error and other exceptions
                 return response()->json([
                     'success' => false,
-                    'message' => 'Internal Server Error: ' . $e->getMessage(),
+                    'message' => Message::INTERNAL_SERVER_ERROR . ': ' . $e->getMessage(),
                     'data' => null
                 ], 500);
             }

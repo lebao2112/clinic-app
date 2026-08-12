@@ -17,4 +17,7 @@ class Message
     const SUCCESS = 'Success';
     const ERROR = 'An error occurred';
 
+    const NOT_FOUND = 'Endpoint or resource not found';
+    const INTERNAL_SERVER_ERROR = 'Internal Server Error';
+
 }
