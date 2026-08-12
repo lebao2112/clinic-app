@@ -18,7 +18,7 @@ class AppointmentController extends Controller
 {
     use ApiResponse;
 
-    protected $appointmentService;
+    protected AppointmentService $appointmentService;
 
     public function __construct(AppointmentService $appointmentService)
     {
@@ -49,12 +49,20 @@ class AppointmentController extends Controller
                 Message::SUCCESS, 
                 201
             );
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => Message::VALIDATION_FAILED,
+                'errors'  => [
+                    'schedule_conflict' => [$e->getMessage()]
+                ]
+            ], 422);
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
 
-    public function show($id)
+    public function show(int $id)
     {
         try {
             $appointment = $this->appointmentService->findAppointmentById($id);
@@ -66,7 +74,7 @@ class AppointmentController extends Controller
         }
     }
 
-    public function update(UpdateAppointmentRequest $request, $id)
+    public function update(UpdateAppointmentRequest $request, int $id)
     {
         try {
             $appointment = $this->appointmentService->findAppointmentById($id);
@@ -75,12 +83,20 @@ class AppointmentController extends Controller
             return $this->successResponse(new AppointmentResource($updatedAppointment), Message::SUCCESS);
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(Message::NOT_FOUND, 404);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => Message::VALIDATION_FAILED,
+                'errors'  => [
+                    'schedule_conflict' => [$e->getMessage()]
+                ]
+            ], 422);
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         try {
             $appointment = $this->appointmentService->findAppointmentById($id);
@@ -94,7 +110,7 @@ class AppointmentController extends Controller
         }
     }
 
-    public function changeStatus(ChangeAppointmentStatusRequest $request, $id)
+    public function changeStatus(ChangeAppointmentStatusRequest $request, int $id)
     {
         try {
             $appointment = $this->appointmentService->findAppointmentById($id);
