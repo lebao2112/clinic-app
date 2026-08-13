@@ -11,6 +11,7 @@ use App\Models\Specialty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB; // <-- Thêm thư viện DB
 use Tests\TestCase;
 
 class Week2IntegrationTest extends TestCase
@@ -19,7 +20,16 @@ class Week2IntegrationTest extends TestCase
 
     protected function setUp(): void
     {
+        putenv('DB_DATABASE=laravel_testing');
+        $_ENV['DB_DATABASE'] = 'laravel_testing';
+        $_SERVER['DB_DATABASE'] = 'laravel_testing';
+
         parent::setUp();
+
+        config(['database.connections.pgsql.database' => 'laravel_testing']);
+        DB::purge('pgsql');
+        DB::reconnect('pgsql');
+
         $this->app['auth']->forgetGuards();
 
         Gate::before(function ($user, $ability) {
@@ -33,7 +43,7 @@ class Week2IntegrationTest extends TestCase
     /**
      * Test successful user login.
      */
-    public function test_user_can_login_successfully(): void    
+    public function test_user_can_login_successfully(): void  
     {
         $role = Role::create(['name' => 'Default Role ' . uniqid()]);
 
