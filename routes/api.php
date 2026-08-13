@@ -7,6 +7,7 @@ use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\PatientController; 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ExaminationController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -22,4 +23,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('patients', PatientController::class);
     Route::patch('appointments/{id}/status', [AppointmentController::class, 'changeStatus']);
     Route::apiResource('appointments', AppointmentController::class);
+    Route::post('/examinations', [ExaminationController::class, 'store']);
 });
