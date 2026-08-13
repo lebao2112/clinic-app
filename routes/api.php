@@ -8,12 +8,12 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\PatientController; 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ExaminationController;
+use App\Http\Middleware\EnsurePermission;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
 
-// Protected routes (require valid Sanctum token)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
