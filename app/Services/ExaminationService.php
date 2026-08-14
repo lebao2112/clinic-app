@@ -6,9 +6,26 @@ use App\Models\Appointment;
 use App\Models\Examination;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class ExaminationService
 {
+    /**
+     * Retrieve a paginated list of examinations.
+     */
+    public function getExaminations(Request $request)
+    {
+        return Examination::with(['appointment', 'doctor', 'patient'])->paginate(15);
+    }
+
+    /**
+     * Find an examination by its ID or throw an exception.
+     */
+    public function findExaminationById(int $id): Examination
+    {
+        return Examination::with(['appointment', 'doctor', 'patient'])->findOrFail($id);
+    }
+
     /**
      * Create an examination and complete the appointment atomically within a transaction.
      */
@@ -18,7 +35,7 @@ class ExaminationService
             // 1. Lock the appointment to prevent concurrent modifications
             $appointment = Appointment::lockForUpdate()->findOrFail($data['appointment_id']);
 
-            // 2. Validate specific invalid statuses for clear business messages (Task T2.10)
+            // 2. Validate specific invalid statuses for clear business messages
             if ($appointment->status === 'cancelled') {
                 throw ValidationException::withMessages([
                     'appointment_id' => ['Cannot create an examination for a cancelled appointment.']
@@ -38,14 +55,14 @@ class ExaminationService
                 ]);
             }
 
-            // 3. Prevent duplicate examinations (Task T2.10)
+            // 3. Prevent duplicate examinations
             if (Examination::where('appointment_id', $appointment->id)->exists()) {
                 throw ValidationException::withMessages([
                     'appointment_id' => ['An examination record already exists for this appointment.']
                 ]);
             }
 
-            // 4. Create the examination record (Task T2.8)
+            // 4. Create the examination record
             $examinationData = [
                 'appointment_id' => $appointment->id,
                 'doctor_id'      => $appointment->doctor_id,
@@ -57,10 +74,27 @@ class ExaminationService
 
             $examination = Examination::create($examinationData);
 
-            // 5. Update appointment status to 'completed' (Task T2.9)
+            // 5. Update appointment status to 'completed' automatically
             $appointment->update(['status' => 'completed']);
 
             return $examination;
         });
+    }
+
+    /**
+     * Update an existing examination record.
+     */
+    public function updateExamination(Examination $examination, array $data): Examination
+    {
+        $examination->update($data);
+        return $examination->fresh(['appointment', 'doctor', 'patient']);
+    }
+
+    /**
+     * Delete an examination record.
+     */
+    public function deleteExamination(Examination $examination): bool
+    {
+        return $examination->delete();
     }
 }
