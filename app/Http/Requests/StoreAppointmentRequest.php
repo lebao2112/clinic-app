@@ -20,6 +20,7 @@ class StoreAppointmentRequest extends FormRequest
             'patient_id'   => 'required|exists:patients,id',
             'doctor_id'    => 'required|exists:doctors,id',
             'scheduled_at' => 'required|date|after_or_equal:today',
+            'status'       => 'sometimes|string|in:scheduled,confirmed,completed,cancelled',
             'reason'       => 'nullable|string|max:255',
         ];
     }
