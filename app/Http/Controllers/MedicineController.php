@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMedicineRequest;
 use App\Http\Requests\UpdateMedicineRequest;
+use App\Http\Requests\AdjustMedicineStockRequest;
 use App\Http\Resources\MedicineResource;
 use App\Services\MedicineService;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use App\Constants\Message;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use InvalidArgumentException;
 use Exception;
 
 class MedicineController extends Controller
@@ -84,6 +86,24 @@ class MedicineController extends Controller
             return $this->successResponse(null, Message::SUCCESS);
         } catch (ModelNotFoundException $e) {
             return $this->errorResponse(Message::NOT_FOUND, 404);
+        } catch (Exception $e) {
+            return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
+        }
+    }
+
+    public function adjustStock(AdjustMedicineStockRequest $request, int $id)
+    {
+        try {
+            $updatedMedicine = $this->medicineService->adjustStock($id, $request->validated());
+            
+            return $this->successResponse(new MedicineResource($updatedMedicine), Message::SUCCESS);
+            
+        } catch (ModelNotFoundException $e) {
+            return $this->errorResponse(Message::NOT_FOUND, 404);
+            
+        } catch (InvalidArgumentException $e) {
+            return $this->errorResponse(Message::VALIDATION_FAILED . ': ' . $e->getMessage(), 422);
+            
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }

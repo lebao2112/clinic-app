@@ -14,16 +14,24 @@ use App\Http\Controllers\MedicineController;
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
     Route::apiResource('users', UserController::class);
+    
     Route::apiResource('specialties', SpecialtyController::class);
     Route::apiResource('doctors', DoctorController::class);
     Route::apiResource('patients', PatientController::class);
+    
     Route::patch('appointments/{id}/status', [AppointmentController::class, 'changeStatus']);
     Route::apiResource('appointments', AppointmentController::class);
+    
     Route::post('/examinations', [ExaminationController::class, 'store']);
+    
+    Route::patch('medicines/{id}/stock', [MedicineController::class, 'adjustStock']);
     Route::apiResource('medicines', MedicineController::class);
 });

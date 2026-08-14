@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Constants\Message; 
+use App\Http\Resources\UserResource; 
 
 class AuthController extends Controller
 {
@@ -38,10 +39,10 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        // Return the currently authenticated user
-        return response()->json($request->user());
+        $user = $request->user()->load('role.permissions');
+        return new UserResource($user);
     }
-
+    
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
