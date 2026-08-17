@@ -11,6 +11,7 @@ use App\Http\Controllers\ExaminationController;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\PrescriptionItemController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -38,4 +39,13 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
 
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])
         ->middleware('permission:PRESCRIPTIONS.CREATE');
+
+    Route::post('/prescriptions/{prescription}/items', [PrescriptionItemController::class, 'store'])
+        ->middleware('permission:PRESCRIPTIONS.UPDATE');
+        
+    Route::patch('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'update'])
+        ->middleware('permission:PRESCRIPTIONS.UPDATE');
+        
+    Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
+        ->middleware('permission:PRESCRIPTIONS.UPDATE');
 });
