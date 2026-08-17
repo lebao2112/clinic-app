@@ -9,10 +9,13 @@ use App\Http\Requests\StorePrescriptionItemRequest;
 use App\Http\Requests\UpdatePrescriptionItemRequest;
 use App\Http\Resources\PrescriptionItemResource;
 use App\Services\PrescriptionService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 class PrescriptionItemController extends Controller
 {
+    use ApiResponse;
+
     protected PrescriptionService $prescriptionService;
 
     // Inject the service
@@ -26,13 +29,13 @@ class PrescriptionItemController extends Controller
      */
     public function store(StorePrescriptionItemRequest $request, Prescription $prescription): JsonResponse
     {
-        // Use the service to handle transaction and stock deduction
         $item = $this->prescriptionService->addItemToPrescription($prescription, $request->validated());
 
-        return response()->json([
-            'message' => Message::SUCCESS,
-            'data' => new PrescriptionItemResource($item)
-        ], 201);
+        return $this->successResponse(
+            new PrescriptionItemResource($item),
+            Message::SUCCESS,
+            201
+        );
     }
 
     /**
@@ -40,12 +43,12 @@ class PrescriptionItemController extends Controller
      */
     public function update(UpdatePrescriptionItemRequest $request, PrescriptionItem $prescriptionItem): JsonResponse
     {
-        $prescriptionItem->update($request->validated());
+        $updatedItem = $this->prescriptionService->updatePrescriptionItem($prescriptionItem, $request->validated());
 
-        return response()->json([
-            'message' => Message::SUCCESS,
-            'data' => new PrescriptionItemResource($prescriptionItem)
-        ]);
+        return $this->successResponse(
+            new PrescriptionItemResource($updatedItem),
+            Message::SUCCESS
+        );
     }
 
     /**
@@ -53,10 +56,8 @@ class PrescriptionItemController extends Controller
      */
     public function destroy(PrescriptionItem $prescriptionItem): JsonResponse
     {
-        $prescriptionItem->delete();
+        $this->prescriptionService->removePrescriptionItem($prescriptionItem);
 
-        return response()->json([
-            'message' => Message::SUCCESS,
-        ]);
+        return $this->successResponse(null, Message::SUCCESS);
     }
 }

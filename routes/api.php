@@ -37,15 +37,21 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
     Route::patch('medicines/{id}/stock', [MedicineController::class, 'adjustStock']);
     Route::apiResource('medicines', MedicineController::class);
 
+    Route::get('/prescriptions', [PrescriptionController::class, 'index'])
+        ->middleware('permission:PRESCRIPTIONS.FINDALL');
+        
+    Route::get('/prescriptions/{id}', [PrescriptionController::class, 'show'])
+        ->middleware('permission:PRESCRIPTIONS.FINDONE');
+
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])
         ->middleware('permission:PRESCRIPTIONS.CREATE');
 
     Route::post('/prescriptions/{prescription}/items', [PrescriptionItemController::class, 'store'])
-        ->middleware('permission:PRESCRIPTIONS.UPDATE');
+        ->middleware('permission:PRESCRIPTIONS.ADDITEM');
         
     Route::patch('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'update'])
-        ->middleware('permission:PRESCRIPTIONS.UPDATE');
+        ->middleware('permission:PRESCRIPTIONS.UPDATEITEM');
         
     Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
-        ->middleware('permission:PRESCRIPTIONS.UPDATE');
+        ->middleware('permission:PRESCRIPTIONS.REMOVEITEM');
 });

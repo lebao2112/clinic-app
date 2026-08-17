@@ -20,7 +20,7 @@ class StorePrescriptionItemRequest extends FormRequest
         return [
             'medicine_id' => [
                 'required',
-                'exists:medicines,id',
+                'exists:medicines,id', 
                 // Prevent duplicate medicine_id for the same prescription_id
                 Rule::unique('prescription_items')->where(function ($query) use ($prescriptionId) {
                     return $query->where('prescription_id', $prescriptionId);
