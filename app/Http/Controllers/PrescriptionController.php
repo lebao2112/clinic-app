@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\Message;
 use App\Http\Requests\StorePrescriptionRequest;
+use App\Http\Resources\PrescriptionResource;
 use App\Services\PrescriptionService;
 use Illuminate\Http\JsonResponse;
 
@@ -28,8 +30,8 @@ class PrescriptionController extends Controller
         $prescription = $this->prescriptionService->createPrescription($data);
 
         return response()->json([
-            'message' => 'Prescription created successfully',
-            'data' => $prescription
+            'message' => Message::SUCCESS,
+            'data' => new PrescriptionResource($prescription)
         ], 201);
     }
 }
