@@ -8,17 +8,26 @@ use App\Models\PrescriptionItem;
 use App\Http\Requests\StorePrescriptionItemRequest;
 use App\Http\Requests\UpdatePrescriptionItemRequest;
 use App\Http\Resources\PrescriptionItemResource;
+use App\Services\PrescriptionService;
 use Illuminate\Http\JsonResponse;
 
 class PrescriptionItemController extends Controller
 {
+    protected PrescriptionService $prescriptionService;
+
+    // Inject the service
+    public function __construct(PrescriptionService $prescriptionService)
+    {
+        $this->prescriptionService = $prescriptionService;
+    }
+
     /**
      * Add a new item to an existing prescription.
      */
     public function store(StorePrescriptionItemRequest $request, Prescription $prescription): JsonResponse
     {
-        // Laravel automatically assigns the prescription_id through the items() relationship
-        $item = $prescription->items()->create($request->validated());
+        // Use the service to handle transaction and stock deduction
+        $item = $this->prescriptionService->addItemToPrescription($prescription, $request->validated());
 
         return response()->json([
             'message' => Message::SUCCESS,
