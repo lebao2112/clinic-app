@@ -10,6 +10,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ExaminationController;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\PrescriptionController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -29,9 +30,12 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
     
     Route::patch('appointments/{id}/status', [AppointmentController::class, 'changeStatus']);
     Route::apiResource('appointments', AppointmentController::class);
-    
-    Route::post('/examinations', [ExaminationController::class, 'store']);
+
+    Route::apiResource('examinations', ExaminationController::class);
     
     Route::patch('medicines/{id}/stock', [MedicineController::class, 'adjustStock']);
     Route::apiResource('medicines', MedicineController::class);
+
+    Route::post('/prescriptions', [PrescriptionController::class, 'store'])
+        ->middleware('permission:PRESCRIPTIONS.CREATE');
 });
