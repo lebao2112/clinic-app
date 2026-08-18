@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsurePermission;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PrescriptionItemController;
+use App\Http\Controllers\InvoiceController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -54,4 +55,7 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
         
     Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
         ->middleware('permission:PRESCRIPTIONS.REMOVEITEM');
+
+    Route::post('/invoices', [InvoiceController::class, 'store'])
+        ->middleware('permission:INVOICES.CREATE');
 });

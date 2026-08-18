@@ -20,4 +20,7 @@ class Message
     const NOT_FOUND = 'Endpoint or resource not found';
     const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 
+    const INVOICE_CREATED_SUCCESS = 'Invoice created successfully.';
+    const CREATE_INVOICE_FAILED = 'Failed to create invoice.';
+    const EXAMINATION_NOT_FOUND = 'Examination record not found.';
 }
