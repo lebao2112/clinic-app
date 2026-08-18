@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceDiscountRequest;
-use App\Models\Invoice;
+use App\Http\Resources\InvoiceResource;
 use App\Services\InvoiceService;
 use App\Traits\ApiResponse;
 use App\Constants\Message;
@@ -32,19 +32,18 @@ class InvoiceController extends Controller
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
         try {
-            // Data is already validated; duplicates will automatically return 422
             $data = $request->validated();
             
             $invoice = $this->invoiceService->createInvoice($data);
 
             return $this->successResponse(
-                $invoice, 
+                new InvoiceResource($invoice), 
                 Message::INVOICE_CREATED_SUCCESS, 
                 201
             );
             
         } catch (Exception $e) {
-            Log::error('Invoice Creation Error: ' . $e->getMessage());
+            Log::error(Message::LOG_INVOICE_CREATION_ERROR . $e->getMessage());
             
             return $this->errorResponse(
                 Message::CREATE_INVOICE_FAILED, 
@@ -64,11 +63,10 @@ class InvoiceController extends Controller
     public function update(UpdateInvoiceDiscountRequest $request, $id): JsonResponse
     {
         try {
-            $invoice = Invoice::findOrFail($id);
-            $updatedInvoice = $this->invoiceService->updateDiscount($invoice, $request->validated('discount'));
+            $updatedInvoice = $this->invoiceService->updateDiscount($id, $request->validated('discount'));
 
             return $this->successResponse(
-                $updatedInvoice, 
+                new InvoiceResource($updatedInvoice), 
                 Message::INVOICE_DISCOUNT_UPDATED,
                 200
             );
@@ -76,8 +74,13 @@ class InvoiceController extends Controller
             if ($e->getMessage() === Message::INVOICE_CANNOT_BE_MODIFIED) {
                 return $this->errorResponse($e->getMessage(), 422);
             }
-            Log::error('Invoice Update Discount Error: ' . $e->getMessage());
-            return $this->errorResponse(Message::ERROR ?? 'Internal Server Error', 500, [$e->getMessage()]);
+            
+            Log::error(Message::LOG_INVOICE_UPDATE_DISCOUNT_ERROR . $e->getMessage());
+            return $this->errorResponse(
+                Message::ERROR ?? Message::INTERNAL_SERVER_ERROR, 
+                500, 
+                [$e->getMessage()]
+            );
         }
     }
 
@@ -90,11 +93,10 @@ class InvoiceController extends Controller
     public function updateStatus($id): JsonResponse
     {
         try {
-            $invoice = Invoice::findOrFail($id);
-            $cancelledInvoice = $this->invoiceService->cancelInvoice($invoice);
+            $cancelledInvoice = $this->invoiceService->cancelInvoice($id);
 
             return $this->successResponse(
-                $cancelledInvoice, 
+                new InvoiceResource($cancelledInvoice), 
                 Message::INVOICE_CANCELLED,
                 200
             );
@@ -102,8 +104,13 @@ class InvoiceController extends Controller
             if ($e->getMessage() === Message::INVOICE_CANNOT_BE_MODIFIED) {
                 return $this->errorResponse($e->getMessage(), 422);
             }
-            Log::error('Invoice Cancel Error: ' . $e->getMessage());
-            return $this->errorResponse(Message::ERROR ?? 'Internal Server Error', 500, [$e->getMessage()]);
+            
+            Log::error(Message::LOG_INVOICE_CANCEL_ERROR . $e->getMessage());
+            return $this->errorResponse(
+                Message::ERROR ?? Message::INTERNAL_SERVER_ERROR, 
+                500, 
+                [$e->getMessage()]
+            );
         }
     }
 }
