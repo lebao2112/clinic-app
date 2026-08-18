@@ -58,4 +58,10 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
 
     Route::post('/invoices', [InvoiceController::class, 'store'])
         ->middleware('permission:INVOICES.CREATE');
+
+    Route::patch('/invoices/{id}/discount', [InvoiceController::class, 'update'])
+        ->middleware('permission:INVOICES.UPDATE');
+        
+    Route::patch('/invoices/{id}/cancel', [InvoiceController::class, 'updateStatus'])
+        ->middleware('permission:INVOICES.UPDATESTATUS');
 });

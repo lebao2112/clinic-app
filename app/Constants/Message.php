@@ -23,4 +23,7 @@ class Message
     const INVOICE_CREATED_SUCCESS = 'Invoice created successfully.';
     const CREATE_INVOICE_FAILED = 'Failed to create invoice.';
     const EXAMINATION_NOT_FOUND = 'Examination record not found.';
+    const INVOICE_DISCOUNT_UPDATED = 'Invoice discount updated successfully.';
+    const INVOICE_CANCELLED = 'Invoice cancelled successfully.';
+    const INVOICE_CANNOT_BE_MODIFIED = 'Action denied: Invoice cannot be modified because it is not in unpaid status.';
 }
