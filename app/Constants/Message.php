@@ -26,4 +26,8 @@ class Message
     const INVOICE_DISCOUNT_UPDATED = 'Invoice discount updated successfully.';
     const INVOICE_CANCELLED = 'Invoice cancelled successfully.';
     const INVOICE_CANNOT_BE_MODIFIED = 'Action denied: Invoice cannot be modified because it is not in unpaid status.';
+
+    const LOG_INVOICE_CREATION_ERROR = 'Invoice Creation Error: ';
+    const LOG_INVOICE_UPDATE_DISCOUNT_ERROR = 'Invoice Update Discount Error: ';
+    const LOG_INVOICE_CANCEL_ERROR = 'Invoice Cancel Error: ';
 }

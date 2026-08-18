@@ -11,9 +11,6 @@ use Exception;
 
 class InvoiceService
 {
-    // Define consultation fee constant (can also be loaded from config file)
-    public const EXAMINATION_FEE = 150000; 
-
     /**
      * Create invoice with automatic cost calculation.
      *
@@ -35,8 +32,10 @@ class InvoiceService
                 }
             }
 
+            $examinationFee = env('EXAMINATION_FEE');
+
             // 2. Calculate subtotal and final total
-            $subtotal = $medicineTotal + self::EXAMINATION_FEE;
+            $subtotal = $medicineTotal + $examinationFee;
             $discount = $data['discount'] ?? 0;
             $total = $subtotal - $discount;
 
@@ -55,7 +54,7 @@ class InvoiceService
                 'subtotal'       => $subtotal,
                 'discount'       => $discount,
                 'total'          => $total,
-                'status'         => 'unpaid', // Default status
+                'status'         => 'unpaid', 
                 'issued_at'      => now(),
             ]);
         });
@@ -64,24 +63,24 @@ class InvoiceService
     /**
      * Update the invoice discount securely.
      * 
-     * @param Invoice $invoice
+     * @param int $id
      * @param float $discount
      * @return Invoice
      * @throws Exception
      */
-    public function updateDiscount(Invoice $invoice, float $discount): Invoice
+    public function updateDiscount($id, float $discount): Invoice
     {
-        // Prevent updates if the invoice is no longer unpaid
+        $invoice = Invoice::findOrFail($id);
+
         if ($invoice->status !== 'unpaid') {
             throw new Exception(Message::INVOICE_CANNOT_BE_MODIFIED);
         }
 
-        // Calculate new total
         $total = $invoice->subtotal - $discount;
 
         $invoice->update([
             'discount' => $discount,
-            'total'    => max($total, 0), // Prevent negative total
+            'total'    => max($total, 0),
         ]);
 
         return $invoice;
@@ -90,13 +89,14 @@ class InvoiceService
     /**
      * Cancel the invoice safely.
      * 
-     * @param Invoice $invoice
+     * @param int $id
      * @return Invoice
      * @throws Exception
      */
-    public function cancelInvoice(Invoice $invoice): Invoice
+    public function cancelInvoice($id): Invoice
     {
-        // Prevent cancellation if the invoice is no longer unpaid
+        $invoice = Invoice::findOrFail($id);
+
         if ($invoice->status !== 'unpaid') {
             throw new Exception(Message::INVOICE_CANNOT_BE_MODIFIED);
         }
