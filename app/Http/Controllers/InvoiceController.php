@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInvoiceRequest;
+use App\Http\Requests\UpdateInvoiceDiscountRequest;
+use App\Models\Invoice;
 use App\Services\InvoiceService;
 use App\Traits\ApiResponse;
 use App\Constants\Message;
@@ -49,6 +51,59 @@ class InvoiceController extends Controller
                 500, 
                 [$e->getMessage()]
             );
+        }
+    }
+
+    /**
+     * Update invoice discount.
+     *
+     * @param UpdateInvoiceDiscountRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(UpdateInvoiceDiscountRequest $request, $id): JsonResponse
+    {
+        try {
+            $invoice = Invoice::findOrFail($id);
+            $updatedInvoice = $this->invoiceService->updateDiscount($invoice, $request->validated('discount'));
+
+            return $this->successResponse(
+                $updatedInvoice, 
+                Message::INVOICE_DISCOUNT_UPDATED,
+                200
+            );
+        } catch (Exception $e) {
+            if ($e->getMessage() === Message::INVOICE_CANNOT_BE_MODIFIED) {
+                return $this->errorResponse($e->getMessage(), 422);
+            }
+            Log::error('Invoice Update Discount Error: ' . $e->getMessage());
+            return $this->errorResponse(Message::ERROR ?? 'Internal Server Error', 500, [$e->getMessage()]);
+        }
+    }
+
+    /**
+     * Cancel the invoice.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function updateStatus($id): JsonResponse
+    {
+        try {
+            $invoice = Invoice::findOrFail($id);
+            $cancelledInvoice = $this->invoiceService->cancelInvoice($invoice);
+
+            return $this->successResponse(
+                $cancelledInvoice, 
+                Message::INVOICE_CANCELLED,
+                200
+            );
+        } catch (Exception $e) {
+            if ($e->getMessage() === Message::INVOICE_CANNOT_BE_MODIFIED) {
+                return $this->errorResponse($e->getMessage(), 422);
+            }
+            Log::error('Invoice Cancel Error: ' . $e->getMessage());
+            return $this->errorResponse(Message::ERROR ?? 'Internal Server Error', 500, [$e->getMessage()]);
         }
     }
 }

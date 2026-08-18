@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Prescription extends Model
 {
@@ -35,6 +36,11 @@ class Prescription extends Model
      * Get the prescription items for this prescription.
      */
     public function items()
+    {
+        return $this->hasMany(PrescriptionItem::class);
+    }
+
+    public function prescriptionItems(): HasMany
     {
         return $this->hasMany(PrescriptionItem::class);
     }

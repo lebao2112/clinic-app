@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Examination;
 use App\Models\Invoice;
+use App\Constants\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
@@ -58,5 +59,52 @@ class InvoiceService
                 'issued_at'      => now(),
             ]);
         });
+    }
+
+    /**
+     * Update the invoice discount securely.
+     * 
+     * @param Invoice $invoice
+     * @param float $discount
+     * @return Invoice
+     * @throws Exception
+     */
+    public function updateDiscount(Invoice $invoice, float $discount): Invoice
+    {
+        // Prevent updates if the invoice is no longer unpaid
+        if ($invoice->status !== 'unpaid') {
+            throw new Exception(Message::INVOICE_CANNOT_BE_MODIFIED);
+        }
+
+        // Calculate new total
+        $total = $invoice->subtotal - $discount;
+
+        $invoice->update([
+            'discount' => $discount,
+            'total'    => max($total, 0), // Prevent negative total
+        ]);
+
+        return $invoice;
+    }
+
+    /**
+     * Cancel the invoice safely.
+     * 
+     * @param Invoice $invoice
+     * @return Invoice
+     * @throws Exception
+     */
+    public function cancelInvoice(Invoice $invoice): Invoice
+    {
+        // Prevent cancellation if the invoice is no longer unpaid
+        if ($invoice->status !== 'unpaid') {
+            throw new Exception(Message::INVOICE_CANNOT_BE_MODIFIED);
+        }
+
+        $invoice->update([
+            'status' => 'cancelled',
+        ]);
+
+        return $invoice;
     }
 }
