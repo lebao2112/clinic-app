@@ -22,35 +22,93 @@ class PermissionSeeder extends Seeder
             'CASHIER'      => Role::where('name', 'CASHIER')->first(),
         ];
 
-        // 2. DEFINE PERMISSION MAP
-        // Add more permissions according to the project requirements here
+        // 2. DEFINE PERMISSION MAP 
         $permissionsMap = [
-            // Patients group
-            'PATIENTS.INDEX'   => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            // Specialties
+            'SPECIALTIES.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'SPECIALTIES.CREATE'  => ['ADMIN'],
+            'SPECIALTIES.FINDONE' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'SPECIALTIES.UPDATE'  => ['ADMIN'],
+            'SPECIALTIES.DELETE'  => ['ADMIN'],
+
+            // Doctors
+            'DOCTORS.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'DOCTORS.CREATE'  => ['ADMIN'],
+            'DOCTORS.FINDONE' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'DOCTORS.UPDATE'  => ['ADMIN'],
+            'DOCTORS.DELETE'  => ['ADMIN'],
+
+            // Patients
+            'PATIENTS.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'CASHIER'],
             'PATIENTS.CREATE'  => ['ADMIN', 'RECEPTIONIST'],
+            'PATIENTS.FINDONE' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'CASHIER'],
             'PATIENTS.UPDATE'  => ['ADMIN', 'RECEPTIONIST'],
-            'PATIENTS.SHOW'    => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'PATIENTS.DELETE'  => ['ADMIN'],
             
-            // Payments group
-            'PAYMENTS.INDEX'   => ['ADMIN', 'CASHIER'],
-            'PAYMENTS.CAPTURE' => ['ADMIN', 'CASHIER'],
-            
-            // Prescriptions group
-            'PRESCRIPTIONS.CREATE'   => ['ADMIN', 'DOCTOR'],
-            'PRESCRIPTIONS.DISPENSE' => ['ADMIN', 'PHARMACIST'],
+            // Appointments
+            'APPOINTMENTS.FINDALL'     => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'CASHIER'],
+            'APPOINTMENTS.CREATE'      => ['ADMIN', 'RECEPTIONIST'],
+            'APPOINTMENTS.FINDONE'     => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'CASHIER'],
+            'APPOINTMENTS.UPDATE'      => ['ADMIN', 'RECEPTIONIST'],
+            'APPOINTMENTS.UPDATESTATUS'=> ['ADMIN', 'RECEPTIONIST'],
+
+            // Examinations
+            'EXAMINATIONS.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'EXAMINATIONS.CREATE'  => ['ADMIN', 'DOCTOR'],
+            'EXAMINATIONS.FINDONE' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'EXAMINATIONS.UPDATE'  => ['ADMIN', 'DOCTOR'],
+
+            // Medicines
+            'MEDICINES.FINDALL'      => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST'],
+            'MEDICINES.CREATE'       => ['ADMIN', 'PHARMACIST'],
+            'MEDICINES.FINDONE'      => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST'],
+            'MEDICINES.UPDATE'       => ['ADMIN', 'PHARMACIST'],
+            'MEDICINES.DELETE'       => ['ADMIN', 'PHARMACIST'],
+            'MEDICINES.ADJUSTSTOCK'  => ['ADMIN', 'PHARMACIST'],
+
+            // Prescriptions
+            'PRESCRIPTIONS.FINDALL'   => ['ADMIN', 'DOCTOR', 'PHARMACIST'],
+            'PRESCRIPTIONS.CREATE'    => ['ADMIN', 'DOCTOR'],
+            'PRESCRIPTIONS.FINDONE'   => ['ADMIN', 'DOCTOR', 'PHARMACIST'],
+            'PRESCRIPTIONS.UPDATE'    => ['ADMIN', 'DOCTOR'],
+            'PRESCRIPTIONS.ADDITEM'   => ['ADMIN', 'DOCTOR'],
+            'PRESCRIPTIONS.UPDATEITEM'=> ['ADMIN', 'DOCTOR'],
+            'PRESCRIPTIONS.REMOVEITEM'=> ['ADMIN', 'DOCTOR'],
+            'PRESCRIPTIONS.DISPENSE'  => ['ADMIN', 'PHARMACIST'],
+
+            // Invoices
+            'INVOICES.FINDALL'      => ['ADMIN', 'CASHIER'],
+            'INVOICES.CREATE'       => ['ADMIN', 'CASHIER'],
+            'INVOICES.FINDONE'      => ['ADMIN', 'CASHIER'],
+            'INVOICES.UPDATE'       => ['ADMIN', 'CASHIER'],
+            'INVOICES.UPDATESTATUS' => ['ADMIN', 'CASHIER'],
+
+            // Payments
+            'PAYMENTS.FINDALL'   => ['ADMIN', 'CASHIER'],
+            'PAYMENTS.CREATE'    => ['ADMIN', 'CASHIER'],
+            'PAYMENTS.CAPTURE'   => ['ADMIN', 'CASHIER'],
+
+            // Stats
+            'STATS.SHOW'         => ['ADMIN'],
+
+            // Users & Roles
+            'USERS.FINDALL'      => ['ADMIN'],
+            'USERS.CREATE'       => ['ADMIN'],
+            'USERS.FINDONE'      => ['ADMIN'],
+            'USERS.UPDATE'       => ['ADMIN'],
+            'USERS.DELETE'       => ['ADMIN'],
+            'USERS.UPDATESTATUS' => ['ADMIN'],
+            'ROLES.FINDALL'      => ['ADMIN'],
         ];
 
         // 3. Iterate through the map to create Permissions and map them to Role_Permissions
         foreach ($permissionsMap as $permissionName => $roleNames) {
-            // Create Permission (if it does not exist)
             $permission = Permission::firstOrCreate([
                 'name' => $permissionName,
             ]);
 
-            // Assign the permission to the specified Roles
             foreach ($roleNames as $roleName) {
                 if (isset($roles[$roleName]) && $roles[$roleName]) {
-                    // Use syncWithoutDetaching to prevent duplicate data
                     $roles[$roleName]->permissions()->syncWithoutDetaching([$permission->id]);
                 }
             }
