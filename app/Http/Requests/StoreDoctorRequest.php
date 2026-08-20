@@ -25,7 +25,7 @@ class StoreDoctorRequest extends BaseRequest
                     $doctorRole = Role::where('name', 'DOCTOR')->first();
                     
                     if (!$user || !$doctorRole || $user->role_id !== $doctorRole->id) {
-                        $fail('Hồ sơ bác sĩ chỉ được tạo cho tài khoản có vai trò là DOCTOR.');
+                        $fail('Doctor profiles can only be created for users with the DOCTOR role.');
                     }
                 }
             ],
