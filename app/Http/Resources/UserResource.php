@@ -14,12 +14,11 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'is_active' => $this->is_active,
-            
+            'role_id' => $this->role_id, 
             'role' => $this->whenLoaded('role', function () {
                 return $this->role->name; 
             }),
             
-            // Lấy permissions từ role (chỉ trả về nếu role và permissions đã được load thành công)
             'permissions' => $this->whenLoaded('role', function () {
                 return $this->role->relationLoaded('permissions') 
                     ? $this->role->permissions->pluck('name') 

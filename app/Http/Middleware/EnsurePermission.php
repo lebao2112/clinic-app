@@ -19,6 +19,7 @@ class EnsurePermission
         'store'   => 'CREATE',
         'update'  => 'UPDATE',
         'destroy' => 'DELETE',
+        'changeStatus' => 'UPDATESTATUS',
     ];
 
     public function handle(Request $request, Closure $next): Response
