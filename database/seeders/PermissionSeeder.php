@@ -13,7 +13,7 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Fetch all roles created in T1.7
+        // 1. Fetch all roles
         $roles = [
             'ADMIN'        => Role::where('name', 'ADMIN')->first(),
             'RECEPTIONIST' => Role::where('name', 'RECEPTIONIST')->first(),
@@ -22,7 +22,7 @@ class PermissionSeeder extends Seeder
             'CASHIER'      => Role::where('name', 'CASHIER')->first(),
         ];
 
-        // 2. DEFINE PERMISSION MAP 
+        // 2. DEFINE PERMISSION 
         $permissionsMap = [
             // Specialties
             'SPECIALTIES.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
@@ -53,15 +53,15 @@ class PermissionSeeder extends Seeder
             'APPOINTMENTS.UPDATESTATUS'=> ['ADMIN', 'RECEPTIONIST'],
 
             // Examinations
-            'EXAMINATIONS.FINDALL' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'EXAMINATIONS.FINDALL' => ['ADMIN', 'DOCTOR', 'CASHIER'],
             'EXAMINATIONS.CREATE'  => ['ADMIN', 'DOCTOR'],
-            'EXAMINATIONS.FINDONE' => ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+            'EXAMINATIONS.FINDONE' => ['ADMIN', 'DOCTOR', 'CASHIER'],
             'EXAMINATIONS.UPDATE'  => ['ADMIN', 'DOCTOR'],
 
             // Medicines
-            'MEDICINES.FINDALL'      => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST'],
+            'MEDICINES.FINDALL'      => ['ADMIN', 'DOCTOR', 'PHARMACIST'],
             'MEDICINES.CREATE'       => ['ADMIN', 'PHARMACIST'],
-            'MEDICINES.FINDONE'      => ['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST'],
+            'MEDICINES.FINDONE'      => ['ADMIN', 'DOCTOR', 'PHARMACIST'],
             'MEDICINES.UPDATE'       => ['ADMIN', 'PHARMACIST'],
             'MEDICINES.DELETE'       => ['ADMIN', 'PHARMACIST'],
             'MEDICINES.ADJUSTSTOCK'  => ['ADMIN', 'PHARMACIST'],
@@ -74,7 +74,7 @@ class PermissionSeeder extends Seeder
             'PRESCRIPTIONS.ADDITEM'   => ['ADMIN', 'DOCTOR'],
             'PRESCRIPTIONS.UPDATEITEM'=> ['ADMIN', 'DOCTOR'],
             'PRESCRIPTIONS.REMOVEITEM'=> ['ADMIN', 'DOCTOR'],
-            'PRESCRIPTIONS.DISPENSE'  => ['ADMIN', 'PHARMACIST'],
+            'PRESCRIPTIONS.DISPENSE'  => ['ADMIN', 'PHARMACIST'], 
 
             // Invoices
             'INVOICES.FINDALL'      => ['ADMIN', 'CASHIER'],
