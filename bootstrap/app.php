@@ -15,7 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Keep your existing middleware configurations here
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\EnsurePermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Force all API exceptions to return a standardized JSON response instead of HTML
