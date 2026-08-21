@@ -30,7 +30,7 @@ class PaymentService
         
         // Assuming your Invoice model has a 'final_amount' or similar field representing the total after discount
         // Replace 'final_amount' with your actual column name (e.g., total_amount - discount)
-        $remainingAmount = $invoice->final_amount - $paidAmount; 
+        $remainingAmount = $invoice->total - $paidAmount;
 
         // 2. Prevent overpayment -> Throws 422 Unprocessable Entity
         if ($data['amount'] > $remainingAmount) {
@@ -92,7 +92,7 @@ class PaymentService
                     
                     // 3. If fully paid, update invoice status
                     // Note: Ensure 'final_amount' matches the column name in your invoices table
-                    if ($totalPaid >= $invoice->final_amount) {
+                    if ($totalPaid >= $invoice->total) {
                         $invoice->update(['status' => 'paid']);
                     }
                 } else {
