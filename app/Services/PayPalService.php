@@ -39,7 +39,7 @@ class PayPalService
 
         return $response->json('access_token');
     }
-    
+
     /**
      * Create a PayPal Order supporting both PayPal and Visa card methods.
      */
@@ -58,22 +58,13 @@ class PayPalService
                         'value' => (string) $usdAmount
                     ]
                 ]
+            ],
+            'application_context' => [
+                'return_url' => 'http://localhost:8000/api/payment/success',
+                'cancel_url' => 'http://localhost:8000/api/payment/cancel',
+                'user_action' => 'PAY_NOW'
             ]
         ];
-
-        // Specify payment source preferences if the method is strictly PayPal
-        // For 'visa' (card), omitting the payment_source allows the Frontend PayPal JS SDK 
-        // to handle the card fields rendering securely.
-        if ($method === 'paypal') {
-            $payload['payment_source'] = [
-                'paypal' => [
-                    'experience_context' => [
-                        'payment_method_preference' => 'UNRESTRICTED',
-                        'user_action' => 'PAY_NOW',
-                    ]
-                ]
-            ];
-        }
 
         $response = Http::withToken($this->getAccessToken())
             ->post("{$this->baseUrl}/v2/checkout/orders", $payload);
@@ -84,12 +75,18 @@ class PayPalService
 
         return $response->json();
     }
+
+    /**
+     * Capture a completed PayPal Order.
+     */
     public function captureOrder(string $orderId): array
     {
         $response = Http::withToken($this->getAccessToken())
             ->withHeaders([
                 'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
             ])
+            ->withBody('{}', 'application/json')
             ->post("{$this->baseUrl}/v2/checkout/orders/{$orderId}/capture");
 
         if ($response->failed()) {
