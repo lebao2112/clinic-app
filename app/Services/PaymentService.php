@@ -40,7 +40,7 @@ class PaymentService
         }
 
         // 3. Call PayPal Sandbox API to create an Order
-        $paypalOrder = $this->paypalService->createOrder($data['amount']);
+        $paypalOrder = $this->paypalService->createOrder($data['amount'], $data['method']);
 
         // 4. Save payment record in database with 'pending' status
         $payment = Payment::create([
@@ -51,7 +51,6 @@ class PaymentService
             'provider'          => 'paypal',
             'provider_order_id' => $paypalOrder['id'],
         ]);
-
         // 5. Extract the approval URL from PayPal's response for the frontend to redirect
         $approvalUrl = collect($paypalOrder['links'])->where('rel', 'approve')->first()['href'] ?? null;
 

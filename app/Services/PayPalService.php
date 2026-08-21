@@ -39,36 +39,44 @@ class PayPalService
 
         return $response->json('access_token');
     }
-
+    
     /**
-     * Create a PayPal Order
+     * Create a PayPal Order supporting both PayPal and Visa card methods.
      */
-    public function createOrder(float $amountInVnd): array
+    public function createOrder(float $amountInVnd, string $method = 'paypal'): array
     {
-        // Note: PayPal doesn't support VND natively. We must convert it to USD.
-        // For demonstration, assuming 1 USD = 25000 VND.
+        // Note: PayPal doesn't support VND natively. Convert it to USD.
+        // Assuming 1 USD = 25000 VND.
         $usdAmount = round($amountInVnd / 25000, 2);
 
-        $response = Http::withToken($this->getAccessToken())
-            ->post("{$this->baseUrl}/v2/checkout/orders", [
-                'intent' => 'CAPTURE',
-                'purchase_units' => [
-                    [
-                        'amount' => [
-                            'currency_code' => 'USD',
-                            'value' => (string) $usdAmount
-                        ]
-                    ]
-                ],
-                'payment_source' => [
-                    'paypal' => [
-                        'experience_context' => [
-                            'payment_method_preference' => 'UNRESTRICTED',
-                            'user_action' => 'PAY_NOW',
-                        ]
+        $payload = [
+            'intent' => 'CAPTURE',
+            'purchase_units' => [
+                [
+                    'amount' => [
+                        'currency_code' => 'USD',
+                        'value' => (string) $usdAmount
                     ]
                 ]
-            ]);
+            ]
+        ];
+
+        // Specify payment source preferences if the method is strictly PayPal
+        // For 'visa' (card), omitting the payment_source allows the Frontend PayPal JS SDK 
+        // to handle the card fields rendering securely.
+        if ($method === 'paypal') {
+            $payload['payment_source'] = [
+                'paypal' => [
+                    'experience_context' => [
+                        'payment_method_preference' => 'UNRESTRICTED',
+                        'user_action' => 'PAY_NOW',
+                    ]
+                ]
+            ];
+        }
+
+        $response = Http::withToken($this->getAccessToken())
+            ->post("{$this->baseUrl}/v2/checkout/orders", $payload);
 
         if ($response->failed()) {
             throw new Exception('Failed to create PayPal order: ' . $response->body());
