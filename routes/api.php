@@ -56,8 +56,6 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
     Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
         ->middleware('permission:PRESCRIPTIONS.REMOVEITEM');
 
-    
-
     Route::post('/invoices', [InvoiceController::class, 'store'])
         ->middleware('permission:INVOICES.CREATE');
 
