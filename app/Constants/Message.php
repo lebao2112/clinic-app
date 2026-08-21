@@ -30,4 +30,6 @@ class Message
     const LOG_INVOICE_CREATION_ERROR = 'Invoice Creation Error: ';
     const LOG_INVOICE_UPDATE_DISCOUNT_ERROR = 'Invoice Update Discount Error: ';
     const LOG_INVOICE_CANCEL_ERROR = 'Invoice Cancel Error: ';
+
+    const PAYMENT_ORDER_CREATED = 'Payment order created successfully.';
 }

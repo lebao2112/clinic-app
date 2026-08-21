@@ -13,6 +13,7 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PrescriptionItemController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -64,4 +65,7 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
         
     Route::patch('/invoices/{id}/cancel', [InvoiceController::class, 'updateStatus'])
         ->middleware('permission:INVOICES.UPDATESTATUS');
+
+    Route::post('/invoices/{id}/payments', [PaymentController::class, 'store'])
+    ->middleware('permission:PAYMENTS.CREATE');
 });
