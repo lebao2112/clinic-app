@@ -1,9 +1,225 @@
-@import 'tailwindcss';
+@import 'element-plus/dist/index.css';
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+/* =======================================
+   GLOBAL STYLES
+======================================= */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: #f8fafc;
+    color: #0f172a;
+}
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* =======================================
+   HIỆU ỨNG KÍNH MỜ (GLASSMORPHISM) & CARDS
+======================================= */
+.box-card {
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.65) !important; 
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Tiêu đề trang */
+.page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.page-header .title {
+  margin: 0 0 6px 0;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.page-header .subtitle {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* =======================================
+   NÚT BẤM NEON GLOW & INPUT TRÀN VIỀN
+======================================= */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.btn-add {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  border: none !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 10px 20px !important;
+  height: auto !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 15px rgba(2, 132, 199, 0.25) !important;
+  transition: all 0.3s ease !important;
+}
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(2, 132, 199, 0.35) !important;
+}
+
+.search-input {
+  width: 320px;
+}
+.search-input .el-input__wrapper {
+  border-radius: 12px !important;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+.search-input .el-input__wrapper.is-focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1) !important;
+}
+
+/* =======================================
+   BẢNG ELEMENT PLUS (TABLES)
+======================================= */
+.el-table {
+  background-color: transparent !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  --el-table-border-color: #f1f5f9;
+  --el-table-header-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+}
+.el-table__inner-wrapper::before {
+  display: none !important; 
+}
+.el-table th.el-table__cell {
+  background: #f8fafc !important;
+  color: #475569;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  padding: 12px 0 !important;
+}
+.el-table tr {
+  background-color: transparent !important;
+  transition: all 0.25s ease-in-out !important;
+}
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+  background-color: #ffffff !important;
+  transform: scale(1.001); 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Info & Thẻ Tag */
+.user-name { font-weight: 700; color: #0f172a; }
+.contact-info { color: #64748b; font-weight: 500; font-size: 13px; }
+.status-tag { 
+  border-radius: 8px; 
+  font-weight: 700; 
+  padding: 4px 12px; 
+  border: none !important; 
+}
+
+/* Action Buttons */
+.action-buttons .el-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.action-buttons .el-button:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+/* =======================================
+   PAGINATION (PHÂN TRANG)
+======================================= */
+.el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+  font-weight: 700;
+  border-radius: 8px;
+  color: white !important;
+}
+.el-pagination.is-background .el-pager li {
+  border-radius: 8px;
+  font-weight: 600;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+/* =======================================
+   SCROLLBAR & ANIMATIONS
+======================================= */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.router-view-enter-active,
+.router-view-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.router-view-enter-from { opacity: 0; transform: translateY(10px); }
+.router-view-leave-to { opacity: 0; transform: translateY(-10px); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.doctors-page, .patients-page, .appointments-page, .invoices-page {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =======================================
+   ÉP SIDEBAR & HEADER SÁNG SỦA (PRECLINIC)
+======================================= */
+.aside-menu {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+.header-bar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+/* ĐÃ XÓA :deep() ĐỂ CHẠY CHUẨN TRÊN CSS TOÀN CỤC */
+.custom-menu .el-menu-item {
+  color: #64748b !important;
+}
+.custom-menu .el-menu-item:hover {
+  background-color: #f8fafc !important;
+  color: #0ea5e9 !important;
+}
+.custom-menu .el-menu-item.is-active {
+  background-color: #eff6ff !important;
+  color: #0284c7 !important;
+}
+.custom-menu .el-menu-item .el-icon {
+  color: #64748b;
+}
+.custom-menu .el-menu-item.is-active .el-icon {
+  color: #0284c7 !important;
 }

@@ -12,7 +12,7 @@ class AppointmentService
 {
     public function getAppointments(Request $request)
     {
-        $query = Appointment::with(['patient', 'doctor']);
+        $query = Appointment::with(['patient', 'doctor.user']);
 
         if ($request->has('status') && !empty($request->status)) {
             $query->where('status', $request->status);
@@ -33,7 +33,7 @@ class AppointmentService
 
     public function findAppointmentById(int $id)
     {
-        return Appointment::with(['patient', 'doctor'])->findOrFail($id);
+        return Appointment::with(['patient', 'doctor.user'])->findOrFail($id);
     }
 
     public function updateAppointment(Appointment $appointment, array $data)
@@ -48,14 +48,14 @@ class AppointmentService
         }
 
         $appointment->update($data);
-        return $appointment->load(['patient', 'doctor']);
+        return $appointment->load(['patient', 'doctor.user']);
     }
 
     public function deleteAppointment(Appointment $appointment)
     {
         return $appointment->delete();
     }
-
+ 
     // T2.5: State Machine for appointment status transitions
     public function changeStatus(Appointment $appointment, string $newStatus)
     {
@@ -74,7 +74,7 @@ class AppointmentService
 
         $appointment->update(['status' => $newStatus]);
         
-        return $appointment->load(['patient', 'doctor']);
+        return $appointment->load(['patient', 'doctor.user']);
     }
 
     /**
