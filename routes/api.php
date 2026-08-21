@@ -68,4 +68,7 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
 
     Route::post('/invoices/{id}/payments', [PaymentController::class, 'store'])
     ->middleware('permission:PAYMENTS.CREATE');
+
+    Route::post('/payments/{id}/capture', [PaymentController::class, 'capture'])
+    ->middleware('permission:PAYMENTS.CAPTURE');
 });

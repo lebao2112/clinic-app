@@ -76,4 +76,18 @@ class PayPalService
 
         return $response->json();
     }
+    public function captureOrder(string $orderId): array
+    {
+        $response = Http::withToken($this->getAccessToken())
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post("{$this->baseUrl}/v2/checkout/orders/{$orderId}/capture");
+
+        if ($response->failed()) {
+            throw new Exception('Failed to capture PayPal order: ' . $response->body());
+        }
+
+        return $response->json();
+    }
 }

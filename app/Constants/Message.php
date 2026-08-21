@@ -32,4 +32,7 @@ class Message
     const LOG_INVOICE_CANCEL_ERROR = 'Invoice Cancel Error: ';
 
     const PAYMENT_ORDER_CREATED = 'Payment order created successfully.';
+    const PAYMENT_CAPTURED_SUCCESS = 'Payment captured successfully.';
+    const PAYMENT_CAPTURE_FAILED = 'Payment capture failed.';
+    const PAYMENT_NOT_PENDING = 'Action denied: Only pending payments can be captured.';
 }

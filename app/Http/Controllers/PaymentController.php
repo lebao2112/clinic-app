@@ -36,4 +36,23 @@ class PaymentController extends Controller
             throw $e; 
         }
     }
+    public function capture(int $id)
+    {
+        try {
+            $payment = $this->paymentService->capturePayment($id);
+            
+            if ($payment->status === 'completed') {
+                return $this->successResponse(
+                    $payment, 
+                    Message::PAYMENT_CAPTURED_SUCCESS, 
+                    200
+                );
+            }
+            
+            return $this->errorResponse(Message::PAYMENT_CAPTURE_FAILED, 400);
+            
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
 }
