@@ -28,11 +28,13 @@ class MedicineController extends Controller
     public function index(Request $request)
     {
         try {
-            $medicines = $this->medicineService->getMedicines();
+            $medicines = $this->medicineService->getMedicines($request);
             
             return $this->successResponse(MedicineResource::collection($medicines), Message::SUCCESS, 200, [
-                'total'        => $medicines->total(),
                 'current_page' => $medicines->currentPage(),
+                'last_page'    => $medicines->lastPage(),
+                'per_page'     => $medicines->perPage(),
+                'total'        => $medicines->total(),
             ]);
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);

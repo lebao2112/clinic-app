@@ -18,15 +18,16 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Attempt to authenticate the user
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
             return response()->json(['message' => Message::INVALID_CREDENTIALS], 401);
         }
-
-        // Retrieve the authenticated user
-        $user = User::where('email', $request->email)->firstOrFail();
-        
-        // Generate a new API token
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => Message::ACCOUNT_LOCKED
+            ], 403);
+        }
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Return the token response

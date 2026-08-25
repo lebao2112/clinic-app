@@ -11,43 +11,26 @@ use Exception;
 
 class InvoiceService
 {
-    /**
-     * Create invoice with automatic cost calculation.
-     *
-     * @param array $data
-     * @return Invoice
-     * @throws Exception
-     */
     public function createInvoice(array $data): Invoice
     {
         return DB::transaction(function () use ($data) {
-            // Eager load relationships to prevent N+1 queries
-            $examination = Examination::with('prescription.prescriptionItems')->findOrFail($data['examination_id']);
+            $examination = Examination::with('prescription.prescriptionItems.medicine')->findOrFail($data['examination_id']);
 
-            // 1. Calculate medicine total: SUM(qty * price)
             $medicineTotal = 0;
             if ($examination->prescription && $examination->prescription->prescriptionItems) {
                 foreach ($examination->prescription->prescriptionItems as $item) {
-                    $medicineTotal += ($item->quantity * $item->price);
+                    $unitPrice = $item->medicine->price ?? 0;
+                    $medicineTotal += ($item->quantity * $unitPrice);
                 }
             }
 
-            $examinationFee = env('EXAMINATION_FEE');
-
-            // 2. Calculate subtotal and final total
-            $subtotal = $medicineTotal + $examinationFee;
+            $examinationFee = (float) env('EXAMINATION_FEE', 100000);
+            $subtotal = $examinationFee + $medicineTotal;
             $discount = $data['discount'] ?? 0;
-            $total = $subtotal - $discount;
+            $total = max($subtotal - $discount, 0);
 
-            // Prevent negative total
-            if ($total < 0) {
-                $total = 0;
-            }
-
-            // 3. Generate unique invoice code
             $invoiceCode = 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
 
-            // 4. Create and return the invoice
             return Invoice::create([
                 'examination_id' => $examination->id,
                 'invoice_code'   => $invoiceCode,
@@ -60,14 +43,6 @@ class InvoiceService
         });
     }
 
-    /**
-     * Update the invoice discount securely.
-     * 
-     * @param int $id
-     * @param float $discount
-     * @return Invoice
-     * @throws Exception
-     */
     public function updateDiscount($id, float $discount): Invoice
     {
         $invoice = Invoice::findOrFail($id);
@@ -76,23 +51,16 @@ class InvoiceService
             throw new Exception(Message::INVOICE_CANNOT_BE_MODIFIED);
         }
 
-        $total = $invoice->subtotal - $discount;
+        $total = max($invoice->subtotal - $discount, 0);
 
         $invoice->update([
             'discount' => $discount,
-            'total'    => max($total, 0),
+            'total'    => $total,
         ]);
 
         return $invoice;
     }
 
-    /**
-     * Cancel the invoice safely.
-     * 
-     * @param int $id
-     * @return Invoice
-     * @throws Exception
-     */
     public function cancelInvoice($id): Invoice
     {
         $invoice = Invoice::findOrFail($id);

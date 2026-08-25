@@ -49,10 +49,8 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA BÁC SĨ -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa thông tin Bác sĩ' : 'Thêm Bác Sĩ Mới'" width="500px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
-        <!-- Thay thế input thường bằng el-select để chọn tài khoản user -->
         <el-form-item label="Chọn tài khoản Người dùng (User)" prop="user_id">
           <el-select v-model="form.user_id" placeholder="Chọn user tương ứng..." size="large" style="width: 100%;" filterable>
             <el-option
@@ -64,7 +62,6 @@
           </el-select>
         </el-form-item>
 
-        <!-- Thay thế input thường bằng el-select để chọn chuyên khoa -->
         <el-form-item label="Chọn Chuyên khoa (Specialty)" prop="specialty_id">
           <el-select v-model="form.specialty_id" placeholder="Chọn chuyên khoa..." size="large" style="width: 100%;" filterable>
             <el-option
@@ -87,8 +84,8 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lưu bác sĩ' }}
           </el-button>
         </span>
@@ -131,7 +128,6 @@ const rules = {
   license_number: [{ required: true, message: 'Vui lòng nhập số chứng chỉ', trigger: 'blur' }]
 };
 
-// Lấy danh sách bác sĩ
 const fetchDoctors = async (page = 1) => {
   loading.value = true;
   currentPage.value = page;
@@ -146,7 +142,6 @@ const fetchDoctors = async (page = 1) => {
   }
 };
 
-// Lấy danh sách Users và Specialties để đổ vào thẻ Select
 const fetchRelationData = async () => {
   try {
     const [usersRes, specialtiesRes] = await Promise.all([
@@ -230,6 +225,35 @@ const handleDelete = (row) => {
 
 onMounted(() => { 
   fetchDoctors(); 
-  fetchRelationData(); // Gọi đồng thời dữ liệu select khi tải trang
+  fetchRelationData();
 });
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

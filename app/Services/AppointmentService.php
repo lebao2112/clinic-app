@@ -13,6 +13,20 @@ class AppointmentService
     public function getAppointments(Request $request)
     {
         $query = Appointment::with(['patient', 'doctor.user']);
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+
+                $q->whereHas('patient', function($patientQuery) use ($search) {
+                    $patientQuery->where('full_name', 'ilike', '%' . $search . '%')
+                                 ->orWhere('phone', 'ilike', '%' . $search . '%')
+                                 ->orWhere('code', 'ilike', '%' . $search . '%');
+                })
+                ->orWhereHas('doctor.user', function($doctorQuery) use ($search) {
+                    $doctorQuery->where('name', 'ilike', '%' . $search . '%');
+                });
+            });
+        }
 
         if ($request->has('status') && !empty($request->status)) {
             $query->where('status', $request->status);
@@ -69,7 +83,12 @@ class AppointmentService
         $currentStatus = $appointment->status;
 
         if (!in_array($newStatus, $validTransitions[$currentStatus])) {
-            throw new InvalidArgumentException("State transition not allowed from {$currentStatus} to {$newStatus}.");
+            $message = str_replace(
+                [':from', ':to'], 
+                [$currentStatus, $newStatus], 
+                Message::APPOINTMENT_STATE_TRANSITION_NOT_ALLOWED
+            );
+            throw new InvalidArgumentException($message);
         }
 
         $appointment->update(['status' => $newStatus]);
@@ -101,7 +120,8 @@ class AppointmentService
 
         // Throw InvalidArgumentException so the Controller can catch and return a clean 422 response
         if ($query->exists()) {
-            throw new InvalidArgumentException("The doctor is busy around this time. Please choose a slot at least {$appointmentDuration} minutes apart.");
+            $message = str_replace(':duration', $appointmentDuration, Message::APPOINTMENT_DOCTOR_BUSY);
+            throw new InvalidArgumentException($message);
         }
     }
 }

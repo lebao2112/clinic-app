@@ -49,11 +49,16 @@
           </template>
         </el-table-column>
         <el-table-column prop="notes" label="Ghi chú" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="created_at" label="Ngày kê đơn" width="180" align="center" />
+        
+        <el-table-column label="Ngày kê đơn" width="180" align="center">
+          <template #default="scope">
+            {{ formatDate(scope.row.created_at) }}
+          </template>
+        </el-table-column>
+
         <el-table-column label="Thao tác" width="140" align="center" fixed="right">
           <template #default="scope">
             <div class="action-buttons">
-              <!-- Nút Sửa Đã Được Mở Lại -->
               <el-tooltip content="Chỉnh sửa đơn thuốc" placement="top">
                 <el-button type="primary" link @click="handleEdit(scope.row)"><el-icon :size="18"><Edit /></el-icon></el-button>
               </el-tooltip>
@@ -71,7 +76,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG KÊ ĐƠN THUỐC (MASTER-DETAIL) -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh Sửa Đơn Thuốc' : 'Kê Đơn Thuốc Mới'" width="800px" destroy-on-close top="5vh">
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         
@@ -144,8 +148,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật Đơn Thuốc' : 'Lưu Đơn Thuốc' }}
           </el-button>
         </span>
@@ -188,6 +192,11 @@ const rules = {
   examination_id: [{ required: true, message: 'Vui lòng chọn phiếu khám', trigger: 'change' }],
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return dateString.replace('T', ' ').substring(0, 19);
+};
+
 const getMedicineName = (medId) => {
   const med = medicinesList.value.find(m => m.id === medId);
   return med ? `${med.code} - ${med.name}` : `Thuốc #${medId}`;
@@ -195,8 +204,9 @@ const getMedicineName = (medId) => {
 
 const getDoctorName = (docId) => {
   const doc = doctorsList.value.find(d => d.id === docId);
-  if (doc?.user?.name) return doc.user.name;
-  if (doc?.name) return doc.name;
+  if (doc) {
+    return doc.user?.name || doc.name || `Bác sĩ #${docId}`;
+  }
   return docId ? `Bác sĩ #${docId}` : 'N/A';
 };
 
@@ -215,7 +225,7 @@ const fetchRelations = async () => {
     const [exmRes, medRes, docRes] = await Promise.all([
       axios.get('/api/examinations'),
       axios.get('/api/medicines'),
-      axios.get('/api/users?role_id=3')
+      axios.get('/api/doctors')
     ]);
     examinationsList.value = exmRes.data.data || exmRes.data;
     medicinesList.value = medRes.data.data || medRes.data;
@@ -243,11 +253,10 @@ const handleEdit = (row) => {
   form.examination_id = row.examination_id;
   form.notes = row.notes || '';
   
-  // Clone lại danh sách thuốc đã lưu của đơn này
   const loadedItems = row.items || row.prescription_items || [];
   if (loadedItems.length > 0) {
     form.items = loadedItems.map(item => ({
-      id: item.id, // Bắt buộc phải có id để backend nhận biết sửa hay thêm mới
+      id: item.id,
       medicine_id: item.medicine_id,
       quantity: item.quantity,
       dosage: item.dosage,
@@ -277,7 +286,6 @@ const submitForm = async () => {
       submitting.value = true;
       try {
         if (isEditMode.value) {
-          // Gửi PUT request để update đơn thuốc và danh sách items
           await axios.put(`/api/prescriptions/${currentId.value}`, {
             notes: form.notes,
             items: form.items
@@ -318,6 +326,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+
 .expanded-detail {
   padding: 10px 30px 20px 30px;
   background-color: #f8fafc;

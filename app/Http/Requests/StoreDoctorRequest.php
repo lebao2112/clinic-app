@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\BaseRequest;
 use App\Models\User;
 use App\Models\Role;
+use App\Constants\Message;
 
 class StoreDoctorRequest extends BaseRequest
 {
@@ -25,7 +26,7 @@ class StoreDoctorRequest extends BaseRequest
                     $doctorRole = Role::where('name', 'DOCTOR')->first();
                     
                     if (!$user || !$doctorRole || $user->role_id !== $doctorRole->id) {
-                        $fail('Doctor profiles can only be created for users with the DOCTOR role.');
+                        $fail(Message::DOCTOR_ROLE_REQUIRED);
                     }
                 }
             ],

@@ -3,16 +3,25 @@
 namespace App\Services;
 
 use App\Models\Medicine;
+use App\Constants\Message;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class MedicineService
 {
-    public function getMedicines(): LengthAwarePaginator
+    public function getMedicines(Request $request = null): LengthAwarePaginator
     {
-        return Medicine::orderBy('created_at', 'desc')->paginate(15);
+        $query = Medicine::query();
+
+        if ($request && $request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where('name', 'ilike', '%' . $search . '%')
+                  ->orWhere('code', 'ilike', '%' . $search . '%');
+        }
+        return $query->orderBy('created_at', 'desc')->paginate($request ? $request->per_page : 15);
     }
 
     public function createMedicine(array $data): Medicine
@@ -44,14 +53,11 @@ class MedicineService
         $newStock = $medicine->stock + $data['quantity'];
 
         if ($newStock < 0) {
-            throw new InvalidArgumentException('Stock cannot be negative after adjustment.');
+            throw new InvalidArgumentException(Message::MEDICINE_STOCK_NEGATIVE);
         }
 
         $medicine->update(['stock' => $newStock]);
 
-        // Write to activity log
-        // If your team uses a specific package like spatie/laravel-activitylog, you can replace this.
-        // For now, using standard Laravel Log as requested.
         Log::info('Medicine stock adjusted', [
             'medicine_id'      => $medicine->id,
             'quantity_changed' => $data['quantity'],

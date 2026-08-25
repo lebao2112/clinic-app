@@ -23,6 +23,7 @@ class ExaminationController extends Controller
     {
         $this->examinationService = $examinationService;
     }
+    
     public function index(Request $request): JsonResponse
     {
         try {
@@ -31,12 +32,19 @@ class ExaminationController extends Controller
             return $this->successResponse(
                 ExaminationResource::collection($examinations), 
                 Message::SUCCESS, 
-                200
+                200,
+                [
+                    'current_page' => $examinations->currentPage(),
+                    'last_page'    => $examinations->lastPage(),
+                    'per_page'     => $examinations->perPage(),
+                    'total'        => $examinations->total(),
+                ]
             );
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
+    
     public function store(StoreExaminationRequest $request): JsonResponse
     {
         try {
@@ -51,6 +59,7 @@ class ExaminationController extends Controller
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
+    
     public function show(int $id): JsonResponse
     {
         try {
@@ -62,6 +71,7 @@ class ExaminationController extends Controller
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
+    
     public function update(UpdateExaminationRequest $request, int $id): JsonResponse
     {
         try {
@@ -75,6 +85,7 @@ class ExaminationController extends Controller
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }
     }
+    
     public function destroy(int $id): JsonResponse
     {
         try {

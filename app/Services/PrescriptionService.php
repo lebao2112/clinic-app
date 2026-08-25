@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Medicine;
 use App\Models\Prescription;
 use App\Models\PrescriptionItem;
+use App\Constants\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,9 +17,22 @@ class PrescriptionService
      */
     public function getPrescriptions(Request $request)
     {
-        return Prescription::with(['doctor', 'examination', 'items.medicine'])
-            ->latest()
-            ->paginate($request->input('per_page', 15));
+        $query = Prescription::with(['doctor.user', 'examination.patient', 'items.medicine']);
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('examination.patient', function ($patientQuery) use ($search) {
+                    $patientQuery->where('full_name', 'ilike', '%' . $search . '%')
+                                 ->orWhere('code', 'ilike', '%' . $search . '%');
+                })
+                ->orWhereHas('doctor.user', function ($doctorQuery) use ($search) {
+                    $doctorQuery->where('name', 'ilike', '%' . $search . '%');
+                });
+            });
+        }
+
+        return $query->latest()->paginate($request->input('per_page', 15));
     }
 
     /**
@@ -83,8 +97,14 @@ class PrescriptionService
                 // Deduct stock for new medicine
                 $newMedicine = Medicine::where('id', $newMedicineId)->lockForUpdate()->first();
                 if (!$newMedicine || $newMedicine->stock < $newQuantity) {
+                    $availableStock = $newMedicine->stock ?? 0;
+                    $errorMessage = str_replace(
+                        [':medicineId', ':stock'], 
+                        [$newMedicineId, $availableStock], 
+                        Message::NOT_ENOUGH_STOCK_NEW_MEDICINE
+                    );
                     throw ValidationException::withMessages([
-                        'quantity' => "Not enough stock for new medicine ID: {$newMedicineId}. Available: " . ($newMedicine->stock ?? 0)
+                        'quantity' => $errorMessage
                     ]);
                 }
                 $newMedicine->decrement('stock', $newQuantity);
@@ -98,8 +118,13 @@ class PrescriptionService
                     if ($delta > 0) {
                         // Need more stock
                         if ($medicine->stock < $delta) {
+                            $errorMessage = str_replace(
+                                [':medicineId', ':stock'], 
+                                [$item->medicine_id, $medicine->stock], 
+                                Message::NOT_ENOUGH_STOCK_MEDICINE
+                            );
                             throw ValidationException::withMessages([
-                                'quantity' => "Not enough stock for medicine ID: {$item->medicine_id}. Available: {$medicine->stock}"
+                                'quantity' => $errorMessage
                             ]);
                         }
                         $medicine->decrement('stock', $delta);
@@ -146,8 +171,14 @@ class PrescriptionService
 
         // Check if medicine exists and has enough stock
         if (!$medicine || $medicine->stock < $itemData['quantity']) {
+            $availableStock = $medicine->stock ?? 0;
+            $errorMessage = str_replace(
+                [':medicineId', ':stock'], 
+                [$itemData['medicine_id'], $availableStock], 
+                Message::NOT_ENOUGH_STOCK_MEDICINE
+            );
             throw ValidationException::withMessages([
-                'medicine_id' => "Not enough stock for medicine ID: {$itemData['medicine_id']}. Available: " . ($medicine->stock ?? 0)
+                'medicine_id' => $errorMessage
             ]);
         }
 
@@ -161,5 +192,44 @@ class PrescriptionService
             'dosage' => $itemData['dosage'],
             'usage_instruction' => $itemData['usage_instruction'] ?? null,
         ]);
+    }
+
+    public function updatePrescription(int $id, array $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
+            $prescription = Prescription::with('items')->findOrFail($id);
+            
+            $prescription->update([
+                'examination_id' => $data['examination_id'],
+                'doctor_id' => $data['doctor_id'],
+                'notes' => $data['notes'] ?? $prescription->notes,
+            ]);
+
+            if (isset($data['items'])) {
+                $incomingItems = collect($data['items']);
+                $incomingMedicineIds = $incomingItems->pluck('medicine_id')->toArray();
+                foreach ($prescription->items as $existingItem) {
+                    if (!in_array($existingItem->medicine_id, $incomingMedicineIds)) {
+                        $this->removePrescriptionItem($existingItem);
+                    }
+                }
+
+                foreach ($incomingItems as $itemData) {
+                    $existingItem = $prescription->items()->where('medicine_id', $itemData['medicine_id'])->first();
+
+                    if ($existingItem) {
+                        $this->updatePrescriptionItem($existingItem, [
+                            'quantity' => $itemData['quantity'],
+                            'dosage' => $itemData['dosage'],
+                            'usage_instruction' => $itemData['usage_instruction'] ?? null,
+                        ]);
+                    } else {
+                        $this->processMedicineDeduction($prescription, $itemData);
+                    }
+                }
+            }
+
+            return $prescription->load('items.medicine');
+        });
     }
 }

@@ -5,7 +5,6 @@
       <p class="subtitle">Tổng quan tình hình hoạt động của phòng khám hôm nay</p>
     </div>
 
-    <!-- Hàng 1: Các thẻ Thống kê (Stats Cards) -->
     <el-row :gutter="24" class="stat-cards-row">
       <!-- Thẻ Bệnh nhân -->
       <el-col :xs="24" :sm="12" :lg="6">
@@ -25,7 +24,6 @@
         </el-card>
       </el-col>
 
-      <!-- Thẻ Lịch hẹn -->
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
@@ -43,7 +41,6 @@
         </el-card>
       </el-col>
 
-      <!-- Thẻ Bác sĩ -->
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
@@ -61,7 +58,6 @@
         </el-card>
       </el-col>
 
-      <!-- Thẻ Doanh thu -->
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
@@ -80,7 +76,6 @@
       </el-col>
     </el-row>
 
-    <!-- Hàng 2: Biểu đồ & Hoạt động gần đây -->
     <el-row :gutter="24" class="main-dashboard-row">
       <!-- Cột Trái: Biểu đồ (Placeholder) -->
       <el-col :xs="24" :lg="16">
@@ -107,7 +102,6 @@
         </el-card>
       </el-col>
 
-      <!-- Cột Phải: Lịch trình / Timeline -->
       <el-col :xs="24" :lg="8">
         <el-card class="box-card timeline-card" shadow="never">
           <template #header>
@@ -136,7 +130,6 @@
 import { ref } from 'vue';
 import { User, Calendar, Avatar, Money, Top, Bottom, Check } from '@element-plus/icons-vue';
 
-// Fake Data cho Timeline
 const recentActivities = ref([
   {
     content: 'Bệnh nhân Nguyễn Văn A đã hoàn tất thanh toán',

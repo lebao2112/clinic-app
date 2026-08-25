@@ -24,12 +24,12 @@ class PatientController extends Controller
     public function index(Request $request)
     {
         $patients = $this->patientService->getPatients($request);
+        
         return $this->successResponse(PatientResource::collection($patients), Message::SUCCESS, 200, [
             'total' => $patients->total(),
             'current_page' => $patients->currentPage(),
         ]);
     }
-
     public function store(StorePatientRequest $request)
     {
         $patient = $this->patientService->createPatient($request->validated());

@@ -1,6 +1,5 @@
 <template>
   <div class="landing-page">
-    <!-- ================= HEADER ================= -->
     <header class="navbar">
       <div class="container nav-container">
         <div class="logo">
@@ -31,7 +30,6 @@
       </div>
     </header>
 
-    <!-- ================= HERO SECTION ================= -->
     <section class="hero-section">
       <div class="container hero-container">
         <div class="hero-content">
@@ -72,7 +70,6 @@
       </div>
     </section>
 
-    <!-- ================= DỊCH VỤ NỔI BẬT ================= -->
     <section id="services" class="services-section">
       <div class="container">
         <div class="section-header">
@@ -94,7 +91,6 @@
       </div>
     </section>
 
-    <!-- ================= ĐỘI NGŨ BÁC SĨ ================= -->
     <section id="doctors" class="doctors-section" v-loading="loadingDoctors">
       <div class="container">
         <div class="section-header">
@@ -127,8 +123,6 @@
       </div>
     </section>
 
-
-    <!-- ================= QUY TRÌNH ĐẶT LỊCH ================= -->
     <section class="booking-flow">
       <div class="container">
         <div class="section-header">
@@ -143,7 +137,6 @@
       </div>
     </section>
 
-    <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
       <div class="container footer-container">
         <div class="footer-brand">
@@ -162,7 +155,6 @@
       </div>
     </footer>
 
-    <!-- ================= POPUP ĐẶT LỊCH NHANH ================= -->
     <el-dialog 
       v-model="bookingDialogVisible" 
       title="ĐĂNG KÝ LỊCH KHÁM TRỰC TUYẾN" 
@@ -313,7 +305,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Toàn bộ style chuẩn Clean Medical cho Trang chủ */
 .landing-page { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; }
 .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }

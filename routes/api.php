@@ -18,6 +18,9 @@ use App\Http\Controllers\PaymentController;
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/payment/return', [PaymentController::class, 'handleReturn']);
+Route::get('/payment/cancel', [PaymentController::class, 'handleCancel']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -47,6 +50,9 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
 
     Route::post('/prescriptions', [PrescriptionController::class, 'store'])
         ->middleware('permission:PRESCRIPTIONS.CREATE');
+    
+    Route::put('/prescriptions/{id}', [PrescriptionController::class, 'update'])
+        ->middleware('permission:PRESCRIPTIONS.UPDATE');
 
     Route::post('/prescriptions/{prescription}/items', [PrescriptionItemController::class, 'store'])
         ->middleware('permission:PRESCRIPTIONS.ADDITEM');
@@ -56,6 +62,9 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
         
     Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
         ->middleware('permission:PRESCRIPTIONS.REMOVEITEM');
+
+    Route::get('/invoices', [InvoiceController::class, 'index'])
+        ->middleware('permission:INVOICES.FINDALL');
 
     Route::post('/invoices', [InvoiceController::class, 'store'])
         ->middleware('permission:INVOICES.CREATE');
@@ -67,8 +76,8 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
         ->middleware('permission:INVOICES.UPDATESTATUS');
 
     Route::post('/invoices/{id}/payments', [PaymentController::class, 'store'])
-    ->middleware('permission:PAYMENTS.CREATE');
+        ->middleware('permission:PAYMENTS.CREATE');
 
     Route::post('/payments/{id}/capture', [PaymentController::class, 'capture'])
-    ->middleware('permission:PAYMENTS.CAPTURE');
+        ->middleware('permission:PAYMENTS.CAPTURE');
 });

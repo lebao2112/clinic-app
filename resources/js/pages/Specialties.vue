@@ -49,8 +49,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lưu chuyên khoa' }}
           </el-button>
         </span>
@@ -84,10 +84,19 @@ const fetchSpecialties = async (page = 1) => {
   loading.value = true;
   currentPage.value = page;
   try {
-    const res = await axios.get(`/api/specialties?page=${page}&search=${searchQuery.value}`);
+    const res = await axios.get('/api/specialties', {
+      params: {
+        page: page,
+        search: searchQuery.value || undefined
+      }
+    });
     specialties.value = res.data.data || res.data;
     totalSpecialties.value = res.data.meta?.total || res.data.total || specialties.value.length;
-  } catch (error) { console.error(error); } finally { loading.value = false; }
+  } catch (error) { 
+    console.error(error); 
+  } finally { 
+    loading.value = false; 
+  }
 };
 
 const handleSearch = () => fetchSpecialties(1);
@@ -141,3 +150,32 @@ const handleDelete = (row) => {
 
 onMounted(() => fetchSpecialties());
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>
