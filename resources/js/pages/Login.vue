@@ -2,7 +2,6 @@
   <div class="login-page">
     <div class="login-container">
       
-      <!-- NỬA BÊN TRÁI -->
       <div class="login-left-side">
         <div class="overlay-gradient"></div>
 
@@ -20,20 +19,18 @@
         </div>
       </div>
 
-      <!-- NỬA BÊN PHẢI: Form Đăng nhập -->
       <div class="login-right-side">
         <div class="form-wrapper">
           <h2 class="form-title">ĐĂNG NHẬP HỆ THỐNG</h2>
           
           <el-form 
             :model="form" 
-            :rules="rules" 
             ref="formRef" 
             class="custom-form"
-            @keyup.enter="handleLogin"
+            @submit.prevent="handleLogin"
             label-position="top"
           >
-            <el-form-item label="Tài khoản (Email)" prop="email">
+            <el-form-item label="Tài khoản (Email)">
               <el-input 
                 v-model="form.email" 
                 placeholder="admin@clinic.test" 
@@ -42,7 +39,7 @@
               />
             </el-form-item>
             
-            <el-form-item label="Mật khẩu" prop="password">
+            <el-form-item label="Mật khẩu">
               <el-input 
                 v-model="form.password" 
                 type="password" 
@@ -62,7 +59,7 @@
                 type="primary" 
                 class="btn-login-submit" 
                 :loading="loading" 
-                @click="handleLogin"
+                native-type="submit"
               >
                 Đăng nhập
               </el-button>
@@ -96,52 +93,43 @@ const form = reactive({
   remember: false
 });
 
-const rules = {
-  email: [
-    { required: true, message: 'Vui lòng nhập tài khoản email', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' },
-    { min: 6, message: 'Mật khẩu phải từ 6 ký tự trở lên', trigger: 'blur' }
-  ]
-};
-
 const handleLogin = async () => {
-  if (!formRef.value) return;
+  if (!form.email || !form.password) {
+    ElMessage.error('Vui lòng nhập đầy đủ email và mật khẩu!');
+    return;
+  }
   
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true;
-      try {
-        await axios.get('/sanctum/csrf-cookie');
-        const response = await axios.post('/api/login', {
-          email: form.email,
-          password: form.password
-        });
-        
-        const token = response.data.token || response.data.access_token || response.data.data?.token;
-        
-        if (token) {
-          localStorage.setItem('auth_token', token);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        }
-        
-        ElMessage.success('Đăng nhập thành công!');
-        router.push('/patients');
-        
-      } catch (error) {
-        const errorMsg = error.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác!';
-        ElMessage.error(errorMsg);
-      } finally {
-        loading.value = false;
-      }
+  loading.value = true;
+  try {
+    await axios.get('/sanctum/csrf-cookie');
+    const response = await axios.post('/api/login', {
+      email: form.email,
+      password: form.password
+    }, {
+      skipGlobal401: true
+    });
+    
+    const resData = response.data;
+    const token = resData.access_token || resData.token || resData.data?.token;
+    
+    if (token) {
+      localStorage.setItem('auth_token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      ElMessage.success('Đăng nhập thành công!');
+      router.push('/patients');
     }
-  });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    const errorMsg = error.response?.data?.message || 'Tài khoản hoặc mật khẩu không đúng!';
+    ElMessage.error(errorMsg);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
 <style scoped>
-/* BACKGROUND TOÀN TRANG */
 .login-page {
   min-height: 100vh;
   display: flex;
@@ -224,25 +212,22 @@ const handleLogin = async () => {
   font-weight: 600;
 }
 
-/* =======================================
-   ĐÃ SỬA: Ảnh to hơn, bo góc mềm mại, bỏ hover 
-======================================= */
 .illustration-box {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 420px; /* Nới rộng kích thước ảnh */
-  height: 240px;    /* Tăng chiều cao để ảnh cân đối */
+  max-width: 420px; 
+  height: 240px;   
   margin-bottom: 24px;
-  border-radius: 20px; /* Bo góc mềm mại */
-  overflow: hidden;    /* Cắt gọn ảnh vừa vặn vào khung bo góc */
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25); /* Đổ bóng 3D */
+  border-radius: 20px; 
+  overflow: hidden;    
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
 }
 
 .illustration-box img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ép ảnh lấp đầy khung mà không bị méo */
+  object-fit: cover; 
   display: block;
 }
 

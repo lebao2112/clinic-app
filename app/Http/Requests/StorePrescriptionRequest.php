@@ -13,12 +13,11 @@ class StorePrescriptionRequest extends FormRequest
 
     public function rules(): array
     {
+        $prescriptionId = $this->route('prescription') ?? $this->route('id');
+
         return [
-            // Ensure examination exists and hasn't been prescribed yet
-            'examination_id' => 'required|exists:examinations,id|unique:prescriptions,examination_id',
+            'examination_id' => 'sometimes|required|exists:examinations,id|unique:prescriptions,examination_id,' . $prescriptionId,
             'notes' => 'nullable|string',
-            
-            // Validate the items array if provided
             'items' => 'nullable|array',
             'items.*.medicine_id' => 'required_with:items|exists:medicines,id|distinct',
             'items.*.quantity' => 'required_with:items|integer|min:1',

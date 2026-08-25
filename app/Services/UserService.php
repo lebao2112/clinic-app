@@ -7,9 +7,29 @@ use App\Models\Role;
 use App\Constants\Message;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Request;
 
 class UserService
 {
+    public function getUsers(Request $request)
+    {
+        $query = User::with('role');
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ilike', '%' . $search . '%')
+                  ->orWhere('email', 'ilike', '%' . $search . '%');
+            });
+        }
+
+        if ($request->has('role_id') && !empty($request->role_id)) {
+            $query->where('role_id', $request->role_id);
+        }
+
+        return $query->orderBy('id', 'desc')->paginate($request->per_page ?? 15);
+    }
+
     public function createUser(array $data)
     {
         $data['password'] = Hash::make($data['password']);
@@ -22,7 +42,6 @@ class UserService
     {
         $newRoleId = $data['role_id'] ?? $user->role_id;
         
-        // Check Admin protection (keeping the current is_active status)
         $this->ensureNotLastAdmin($user, $newRoleId, $user->is_active);
 
         if (!empty($data['password'])) {
@@ -37,7 +56,6 @@ class UserService
 
     public function updateStatus(User $user, bool $isActive)
     {
-        // Check Admin protection before changing status
         $this->ensureNotLastAdmin($user, $user->role_id, $isActive);
 
         $user->update(['is_active' => $isActive]);
@@ -46,7 +64,6 @@ class UserService
 
     public function deleteUser(User $user)
     {
-        // Check Admin protection before deleting (treating deletion as deactivation)
         $this->ensureNotLastAdmin($user, $user->role_id, false);
 
         $user->delete();
@@ -69,7 +86,7 @@ class UserService
                         'success' => false,
                         'message' => Message::LAST_ADMIN_ACTION_DENIED, 
                         'errors'  => [
-                            'role_id' => ['You are the last active ADMIN in the system.']
+                            'role_id' => [Message::LAST_ADMIN_ACTION_DENIED]
                         ]
                     ], 422));
                 }

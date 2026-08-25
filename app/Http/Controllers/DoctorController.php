@@ -7,10 +7,17 @@ use App\Services\DoctorService;
 use App\Http\Requests\StoreDoctorRequest;
 use App\Http\Requests\UpdateDoctorRequest;
 use App\Http\Resources\DoctorResource;
+use App\Traits\ApiResponse;
+use App\Constants\Message;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class DoctorController extends Controller
 {
+    use ApiResponse;
+
     protected DoctorService $doctorService;
 
     public function __construct(DoctorService $doctorService)
@@ -18,53 +25,108 @@ class DoctorController extends Controller
         $this->doctorService = $doctorService;
     }
 
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $query = Doctor::with(['user', 'specialty']);
+        try {
+            $doctors = $this->doctorService->getDoctors($request);
 
-        if ($request->has('specialty_id')) {
-            $query->where('specialty_id', $request->specialty_id);
+            return $this->successResponse(
+                DoctorResource::collection($doctors),
+                Message::SUCCESS,
+                200,
+                [
+                    'current_page' => $doctors->currentPage(),
+                    'last_page'    => $doctors->lastPage(),
+                    'per_page'     => $doctors->perPage(),
+                    'total'        => $doctors->total(),
+                ]
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
         }
-
-        $doctors = $query->paginate(10);
-        $resource = DoctorResource::collection($doctors);
-
-        return $this->successResponse(
-            $resource->items(),
-            'Doctors retrieved successfully',
-            200,
-            [
-                'current_page' => $doctors->currentPage(),
-                'last_page'    => $doctors->lastPage(),
-                'per_page'     => $doctors->perPage(),
-                'total'        => $doctors->total(),
-            ]
-        );
     }
 
-    public function store(StoreDoctorRequest $request)
+    public function store(StoreDoctorRequest $request): JsonResponse
     {
-        $doctor = $this->doctorService->createDoctor($request->validated());
-        $doctor->load(['user', 'specialty']); 
-        return $this->successResponse(new DoctorResource($doctor), 'Doctor profile created successfully', 201);
+        try {
+            $doctor = $this->doctorService->createDoctor($request->validated());
+            $doctor->load(['user', 'specialty']); 
+
+            return $this->successResponse(
+                new DoctorResource($doctor), 
+                Message::SUCCESS, 
+                201
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 
-    public function show(Doctor $doctor)
+    public function show(Doctor $doctor): JsonResponse
     {
-        $doctor->load(['user', 'specialty']);
-        return $this->successResponse(new DoctorResource($doctor), 'Doctor profile retrieved successfully');
+        try {
+            $doctor->load(['user', 'specialty']);
+
+            return $this->successResponse(
+                new DoctorResource($doctor), 
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::NOT_FOUND,
+                404
+            );
+        }
     }
 
-    public function update(UpdateDoctorRequest $request, Doctor $doctor)
+    public function update(UpdateDoctorRequest $request, Doctor $doctor): JsonResponse
     {
-        $updatedDoctor = $this->doctorService->updateDoctor($doctor, $request->validated());
-        $updatedDoctor->load(['user', 'specialty']);
-        return $this->successResponse(new DoctorResource($updatedDoctor), 'Doctor profile updated successfully');
+        try {
+            $updatedDoctor = $this->doctorService->updateDoctor($doctor, $request->validated());
+            $updatedDoctor->load(['user', 'specialty']);
+
+            return $this->successResponse(
+                new DoctorResource($updatedDoctor), 
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 
-    public function destroy(Doctor $doctor)
+    public function destroy(Doctor $doctor): JsonResponse
     {
-        $this->doctorService->deleteDoctor($doctor);
-        return $this->successResponse(null, 'Doctor profile deleted successfully');
+        try {
+            $this->doctorService->deleteDoctor($doctor);
+
+            return $this->successResponse(
+                null, 
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 }

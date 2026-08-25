@@ -53,7 +53,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA BỆNH NHÂN -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa thông tin Bệnh nhân' : 'Thêm Bệnh Nhân Mới'" width="550px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="Họ và tên đầy đủ" prop="full_name">
@@ -96,8 +95,8 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lưu bệnh nhân' }}
           </el-button>
         </span>
@@ -138,8 +137,6 @@ const rules = {
   phone: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }]
 };
 
-const getAvatarLetter = (name) => name ? name.charAt(0).toUpperCase() : 'P';
-
 const fetchPatients = async (page = 1) => {
   loading.value = true;
   currentPage.value = page;
@@ -157,7 +154,6 @@ const fetchPatients = async (page = 1) => {
 const handleSearch = () => fetchPatients(1);
 const handlePageChange = (page) => fetchPatients(page);
 
-// Mở form Thêm mới
 const openCreateDialog = () => {
   isEditMode.value = false;
   currentPatientId.value = null;
@@ -170,7 +166,6 @@ const openCreateDialog = () => {
   dialogVisible.value = true;
 };
 
-// Mở form Chỉnh sửa
 const handleEdit = (row) => {
   isEditMode.value = true;
   currentPatientId.value = row.id;
@@ -183,7 +178,6 @@ const handleEdit = (row) => {
   dialogVisible.value = true;
 };
 
-// Xử lý Lưu (Thêm mới hoặc Cập nhật)
 const submitForm = async () => {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
@@ -209,7 +203,6 @@ const submitForm = async () => {
   });
 };
 
-// Xử lý Xóa bệnh nhân
 const handleDelete = (row) => {
   ElMessageBox.confirm(
     `Bạn có chắc chắn muốn xóa bệnh nhân "${row.full_name || row.name}" không?`,
@@ -232,3 +225,32 @@ const handleDelete = (row) => {
 
 onMounted(() => { fetchPatients(); });
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

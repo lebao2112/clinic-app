@@ -28,11 +28,34 @@
             </el-tag>
           </template>
         </el-table-column>
+        
+        <!-- CỘT TRẠNG THÁI -->
+        <el-table-column label="Trạng thái" width="130" align="center">
+          <template #default="scope">
+            <el-tag :type="isAccountLocked(scope.row) ? 'danger' : 'success'">
+              {{ isAccountLocked(scope.row) ? 'Đã khóa' : 'Hoạt động' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column label="Thao tác" width="140" align="center" fixed="right">
           <template #default="scope">
             <div class="action-buttons">
-              <el-tooltip content="Chỉnh sửa" placement="top"><el-button type="primary" link @click="handleEdit(scope.row)"><el-icon :size="18"><Edit /></el-icon></el-button></el-tooltip>
-              <el-tooltip content="Xóa" placement="top"><el-button type="danger" link @click="handleDelete(scope.row)"><el-icon :size="18"><Delete /></el-icon></el-button></el-tooltip>
+              <el-tooltip content="Chỉnh sửa" placement="top">
+                <el-button type="primary" link @click="handleEdit(scope.row)">
+                  <el-icon :size="18"><Edit /></el-icon>
+                </el-button>
+              </el-tooltip>
+              
+              <!-- NÚT KHÓA / MỞ KHÓA -->
+              <el-tooltip :content="isAccountLocked(scope.row) ? 'Mở khóa tài khoản' : 'Khóa tài khoản'" placement="top">
+                <el-button :type="isAccountLocked(scope.row) ? 'success' : 'danger'" link @click="handleToggleLock(scope.row)">
+                  <el-icon :size="18">
+                    <Unlock v-if="isAccountLocked(scope.row)" />
+                    <Lock v-else />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
             </div>
           </template>
         </el-table-column>
@@ -44,7 +67,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa Người dùng' : 'Thêm Người dùng mới'" width="480px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="Họ tên" prop="name">
@@ -68,8 +90,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Tạo tài khoản' }}
           </el-button>
         </span>
@@ -80,7 +102,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { Plus, Search, Edit, Delete } from '@element-plus/icons-vue';
+import { Plus, Search, Edit, Lock, Unlock } from '@element-plus/icons-vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -103,22 +125,25 @@ const rules = {
   password: [{ required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' }]
 };
 
+const isAccountLocked = (row) => {
+  return row.status === 'locked' || 
+         row.status === 'inactive' || 
+         String(row.is_active) === '0' || 
+         row.is_active === false;
+};
+
 const getRoleName = (row) => {
   if (!row) return 'N/A';
   
-  // 1. Kiểm tra role_id từ DB nếu có
   const roleId = row.role_id ?? row.roleId ?? row.RoleId;
   const map = { 1: 'ADMIN', 2: 'RECEPTIONIST', 3: 'DOCTOR', 4: 'PHARMACIST', 5: 'CASHIER' };
   if (roleId && map[roleId]) {
     return map[roleId];
   }
 
-  // 2. Kiểm tra object role nếu API trả về kèm theo
   if (row.role?.name) return row.role.name;
   if (row.role?.display_name) return row.role.display_name;
   if (typeof row.role === 'string') return row.role;
-
-  // 3. Fallback thông minh dựa trên email/ID dữ liệu mẫu của bạn
   if (row.email === 'admin@clinic.test' || row.id === 2) return 'ADMIN';
   if (row.email?.includes('doctor') || row.id === 5 || row.id === 12 || row.id === 13) return 'DOCTOR';
 
@@ -138,10 +163,19 @@ const fetchUsers = async (page = 1) => {
   loading.value = true;
   currentPage.value = page;
   try {
-    const res = await axios.get(`/api/users?page=${page}&search=${searchQuery.value}`);
+    const res = await axios.get('/api/users', {
+      params: {
+        page: page,
+        search: searchQuery.value || undefined
+      }
+    });
     users.value = res.data.data || res.data;
     totalUsers.value = res.data.meta?.total || res.data.total || users.value.length;
-  } catch (error) { console.error(error); } finally { loading.value = false; }
+  } catch (error) { 
+    console.error(error); 
+  } finally { 
+    loading.value = false; 
+  }
 };
 
 const handleSearch = () => fetchUsers(1);
@@ -185,14 +219,55 @@ const submitForm = async () => {
   });
 };
 
-const handleDelete = (row) => {
-  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa tài khoản ${row.name}?`, 'Cảnh báo', { type: 'warning' })
+const handleToggleLock = (row) => {
+  const locked = isAccountLocked(row);
+  const actionText = locked ? 'mở khóa' : 'khóa';
+  const newIsActiveState = locked ? true : false; 
+
+  ElMessageBox.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản ${row.name}?`, 'Xác nhận', { type: 'warning' })
     .then(async () => {
-      await axios.delete(`/api/users/${row.id}`);
-      ElMessage.success('Đã xóa thành công!');
-      fetchUsers(currentPage.value);
+      try {
+        await axios.patch(`/api/users/${row.id}/status`, { is_active: newIsActiveState });
+        
+        // Ép cập nhật state cục bộ ngay lập tức để UI thay đổi mượt mà không cần chờ reload
+        row.is_active = newIsActiveState ? 1 : 0; 
+        
+        ElMessage.success(`Đã ${actionText} thành công!`);
+        fetchUsers(currentPage.value);
+      } catch (error) {
+        ElMessage.error(error.response?.data?.message || 'Không thể thay đổi trạng thái!');
+      }
     }).catch(() => {});
 };
 
 onMounted(() => fetchUsers());
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

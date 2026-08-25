@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use App\Constants\Message;
 use Exception;
 
 class PayPalService
@@ -34,7 +35,7 @@ class PayPalService
             ]);
 
         if ($response->failed()) {
-            throw new Exception('PayPal authentication failed: ' . $response->body());
+            throw new Exception(Message::PAYPAL_AUTH_FAILED . $response->body());
         }
 
         return $response->json('access_token');
@@ -70,7 +71,7 @@ class PayPalService
             ->post("{$this->baseUrl}/v2/checkout/orders", $payload);
 
         if ($response->failed()) {
-            throw new Exception('Failed to create PayPal order: ' . $response->body());
+            throw new Exception(Message::PAYPAL_CREATE_ORDER_FAILED . $response->body());
         }
 
         return $response->json();
@@ -90,7 +91,7 @@ class PayPalService
             ->post("{$this->baseUrl}/v2/checkout/orders/{$orderId}/capture");
 
         if ($response->failed()) {
-            throw new Exception('Failed to capture PayPal order: ' . $response->body());
+            throw new Exception(Message::PAYPAL_CAPTURE_FAILED . $response->body());
         }
 
         return $response->json();

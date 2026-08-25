@@ -7,6 +7,7 @@ use App\Services\PaymentService;
 use App\Traits\ApiResponse;
 use App\Constants\Message; 
 use Illuminate\Http\Request;
+use App\Models\Payment;
 
 class PaymentController extends Controller
 {
@@ -36,6 +37,36 @@ class PaymentController extends Controller
             throw $e; 
         }
     }
+
+    /**
+     * Handle PayPal return callback to capture payment and redirect back to frontend.
+     */
+    public function handleReturn(Request $request)
+    {
+        try {
+            $token = $request->query('token');
+            
+            if ($token) {
+                $payment = Payment::where('provider_order_id', $token)->first();
+                if ($payment && $payment->status === 'pending') {
+                    $this->paymentService->capturePayment($payment->id);
+                }
+            }
+            
+            return redirect('http://localhost:8000/invoices?payment=success');
+        } catch (\Exception $e) {
+            return redirect('http://localhost:8000/invoices?payment=failed');
+        }
+    }
+
+    /**
+     * Handle PayPal cancel callback and redirect back to frontend.
+     */
+    public function handleCancel(Request $request)
+    {
+        return redirect('http://localhost:8000/invoices?payment=cancelled');
+    }
+
     public function capture(int $id)
     {
         try {

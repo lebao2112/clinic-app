@@ -34,8 +34,9 @@ class PaymentService
 
         // 2. Prevent overpayment -> Throws 422 Unprocessable Entity
         if ($data['amount'] > $remainingAmount) {
+            $errorMessage = str_replace(':amount', $remainingAmount, Message::PAYMENT_EXCEED_BALANCE);
             throw ValidationException::withMessages([
-                'amount' => ["The payment amount cannot exceed the remaining balance ($remainingAmount)."]
+                'amount' => [$errorMessage]
             ]);
         }
 

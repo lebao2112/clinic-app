@@ -58,7 +58,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa thông tin Thuốc' : 'Thêm Thuốc mới'" width="500px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-row :gutter="20">
@@ -100,8 +99,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lưu thông tin' }}
           </el-button>
         </span>
@@ -206,3 +205,32 @@ const handleDelete = (row) => {
 
 onMounted(() => fetchMedicines());
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

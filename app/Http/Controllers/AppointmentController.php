@@ -30,10 +30,17 @@ class AppointmentController extends Controller
         try {
             $appointments = $this->appointmentService->getAppointments($request);
             
-            return $this->successResponse(AppointmentResource::collection($appointments), Message::SUCCESS, 200, [
-                'total'        => $appointments->total(),
-                'current_page' => $appointments->currentPage(),
-            ]);
+            return $this->successResponse(
+                AppointmentResource::collection($appointments), 
+                Message::SUCCESS, 
+                200, 
+                [
+                    'current_page' => $appointments->currentPage(),
+                    'last_page'    => $appointments->lastPage(),
+                    'per_page'     => $appointments->perPage(),
+                    'total'        => $appointments->total(),
+                ]
+            );
         } catch (Exception $e) {
             return $this->errorResponse(Message::INTERNAL_SERVER_ERROR, 500);
         }

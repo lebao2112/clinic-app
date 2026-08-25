@@ -116,8 +116,8 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lưu lịch hẹn' }}
           </el-button>
         </span>
@@ -165,7 +165,6 @@ const getStatusType = (status) => {
   return map[status] || 'info';
 };
 
-// Kiểm tra trạng thái có được phép chuyển đổi theo logic backend hay không[cite: 13]
 const canTransition = (current, target) => {
   const validTransitions = {
     'scheduled': ['confirmed', 'cancelled'],
@@ -176,7 +175,6 @@ const canTransition = (current, target) => {
   return validTransitions[current]?.includes(target) || false;
 };
 
-// Gọi API chuyên biệt đổi trạng thái (PATCH /api/appointments/{id}/status)[cite: 1, 13]
 const handleStatusChange = async (id, newStatus) => {
   try {
     await axios.patch(`/api/appointments/${id}/status`, { status: newStatus });
@@ -284,3 +282,32 @@ onMounted(() => {
   fetchRelations();
 });
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

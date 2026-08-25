@@ -9,6 +9,7 @@ use App\Services\InvoiceService;
 use App\Traits\ApiResponse;
 use App\Constants\Message;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -23,12 +24,38 @@ class InvoiceController extends Controller
         $this->invoiceService = $invoiceService;
     }
 
-    /**
-     * Store a newly created invoice in storage.
-     *
-     * @param StoreInvoiceRequest $request
-     * @return JsonResponse
-     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $search = $request->query('search');
+
+            $invoices = \App\Models\Invoice::query()
+                ->with(['examination.prescription.prescriptionItems.medicine'])
+                ->when($search, function ($query, $search) {
+                    $query->where('invoice_code', 'like', "%{$search}%")
+                          ->orWhere('id', 'like', "%{$search}%");
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(15);
+
+            $responseData = InvoiceResource::collection($invoices)->response()->getData(true);
+
+            return $this->successResponse(
+                $responseData, 
+                Message::SUCCESS, 
+                200
+            );
+            
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+            
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR, 
+                500
+            );
+        }
+    }
+
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
         try {
@@ -46,20 +73,12 @@ class InvoiceController extends Controller
             Log::error(Message::LOG_INVOICE_CREATION_ERROR . $e->getMessage());
             
             return $this->errorResponse(
-                Message::CREATE_INVOICE_FAILED, 
-                500, 
-                [$e->getMessage()]
+                Message::CREATE_INVOICE_FAILED . ': ' . $e->getMessage(), 
+                500
             );
         }
     }
 
-    /**
-     * Update invoice discount.
-     *
-     * @param UpdateInvoiceDiscountRequest $request
-     * @param int $id
-     * @return JsonResponse
-     */
     public function update(UpdateInvoiceDiscountRequest $request, $id): JsonResponse
     {
         try {
@@ -77,19 +96,12 @@ class InvoiceController extends Controller
             
             Log::error(Message::LOG_INVOICE_UPDATE_DISCOUNT_ERROR . $e->getMessage());
             return $this->errorResponse(
-                Message::ERROR ?? Message::INTERNAL_SERVER_ERROR, 
-                500, 
-                [$e->getMessage()]
+                Message::INTERNAL_SERVER_ERROR, 
+                500
             );
         }
     }
 
-    /**
-     * Cancel the invoice.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
     public function updateStatus($id): JsonResponse
     {
         try {
@@ -107,9 +119,8 @@ class InvoiceController extends Controller
             
             Log::error(Message::LOG_INVOICE_CANCEL_ERROR . $e->getMessage());
             return $this->errorResponse(
-                Message::ERROR ?? Message::INTERNAL_SERVER_ERROR, 
-                500, 
-                [$e->getMessage()]
+                Message::INTERNAL_SERVER_ERROR, 
+                500
             );
         }
     }

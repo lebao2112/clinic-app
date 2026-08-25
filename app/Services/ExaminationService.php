@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Examination;
+use App\Constants\Message;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -15,7 +16,22 @@ class ExaminationService
      */
     public function getExaminations(Request $request)
     {
-        return Examination::with(['appointment', 'doctor', 'patient'])->paginate(15);
+        $query = Examination::with(['appointment', 'doctor.user', 'patient']);
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('patient', function($patientQuery) use ($search) {
+                    $patientQuery->where('full_name', 'ilike', '%' . $search . '%')
+                                 ->orWhere('code', 'ilike', '%' . $search . '%');
+                })
+                ->orWhereHas('doctor.user', function($doctorQuery) use ($search) {
+                    $doctorQuery->where('name', 'ilike', '%' . $search . '%');
+                });
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 15);
     }
 
     /**
@@ -38,27 +54,27 @@ class ExaminationService
             // 2. Validate specific invalid statuses for clear business messages
             if ($appointment->status === 'cancelled') {
                 throw ValidationException::withMessages([
-                    'appointment_id' => ['Cannot create an examination for a cancelled appointment.']
+                    'appointment_id' => [Message::EXAMINATION_CANCELLED_APPOINTMENT]
                 ]);
             }
 
             if ($appointment->status === 'completed') {
                 throw ValidationException::withMessages([
-                    'appointment_id' => ['This appointment has already been completed.']
+                    'appointment_id' => [Message::EXAMINATION_ALREADY_COMPLETED]
                 ]);
             }
 
             // General check to ensure only 'confirmed' appointments proceed
             if ($appointment->status !== 'confirmed') {
                 throw ValidationException::withMessages([
-                    'appointment_id' => ['Examinations can only be created for confirmed appointments.']
+                    'appointment_id' => [Message::EXAMINATION_CONFIRMED_REQUIRED]
                 ]);
             }
 
             // 3. Prevent duplicate examinations
             if (Examination::where('appointment_id', $appointment->id)->exists()) {
                 throw ValidationException::withMessages([
-                    'appointment_id' => ['An examination record already exists for this appointment.']
+                    'appointment_id' => [Message::EXAMINATION_ALREADY_EXISTS]
                 ]);
             }
 

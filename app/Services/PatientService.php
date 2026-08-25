@@ -11,9 +11,9 @@ class PatientService
         $query = Patient::query();
         
         if ($request->has('search') && !empty($request->search)) {
-            $query->where('full_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->search . '%')
-                  ->orWhere('code', 'like', '%' . $request->search . '%');
+            $query->where('full_name', 'ilike', '%' . $request->search . '%')
+                  ->orWhere('phone', 'ilike', '%' . $request->search . '%')
+                  ->orWhere('code', 'ilike', '%' . $request->search . '%');
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 15);

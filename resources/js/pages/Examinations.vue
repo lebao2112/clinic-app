@@ -58,7 +58,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG LẬP / SỬA PHIẾU KHÁM -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa Phiếu khám' : 'Lập Phiếu Khám Mới (Từ Lịch Hẹn)'" width="550px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="Chọn Lịch Hẹn (Trạng thái confirmed)" prop="appointment_id" v-if="!isEditMode">
@@ -83,8 +82,8 @@
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false" size="large">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitForm" size="large" class="btn-add">
+          <el-button @click="dialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" :loading="submitting" @click="submitForm" class="btn-add">
             {{ isEditMode ? 'Cập nhật' : 'Lập phiếu khám' }}
           </el-button>
         </span>
@@ -126,7 +125,6 @@ const rules = {
   diagnosis: [{ required: true, message: 'Vui lòng nhập kết quả chẩn đoán', trigger: 'blur' }]
 };
 
-// Hàm helper để tìm tên bệnh nhân từ danh sách đã load
 const getPatientName = (row) => {
   if (row.patient?.full_name) return row.patient.full_name;
   if (row.patient?.name) return row.patient.name;
@@ -134,7 +132,6 @@ const getPatientName = (row) => {
   return found?.full_name || found?.name || `Bệnh nhân #${row.patient_id}`;
 };
 
-// Hàm helper để tìm tên bác sĩ từ danh sách đã load
 const getDoctorName = (row) => {
   if (row.doctor?.user?.name) return row.doctor.user.name;
   if (row.doctor?.name) return row.doctor.name;
@@ -146,7 +143,12 @@ const fetchExaminations = async (page = 1) => {
   loading.value = true;
   currentPage.value = page;
   try {
-    const response = await axios.get(`/api/examinations?page=${page}`);
+    const response = await axios.get('/api/examinations', {
+      params: {
+        page: page,
+        search: searchQuery.value || undefined
+      }
+    });
     examinations.value = response.data.data || response.data;
     totalExaminations.value = response.data.meta?.total || response.data.total || examinations.value.length;
   } catch (error) {
@@ -242,3 +244,32 @@ onMounted(() => {
   fetchRelations();
 });
 </script>
+
+<style scoped>
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.btn-cancel {
+  border: 1px solid #dcdfe6 !important;
+  color: #606266 !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+</style>

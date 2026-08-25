@@ -7,9 +7,17 @@ use App\Services\SpecialtyService;
 use App\Http\Requests\StoreSpecialtyRequest;
 use App\Http\Requests\UpdateSpecialtyRequest;
 use App\Http\Resources\SpecialtyResource;
+use App\Traits\ApiResponse;
+use App\Constants\Message;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SpecialtyController extends Controller
 {
+    use ApiResponse;
+
     protected SpecialtyService $specialtyService;
 
     public function __construct(SpecialtyService $specialtyService)
@@ -17,44 +25,105 @@ class SpecialtyController extends Controller
         $this->specialtyService = $specialtyService;
     }
 
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        $specialties = Specialty::paginate(10);
-        $resource = SpecialtyResource::collection($specialties);
+        try {
+            $specialties = $this->specialtyService->getSpecialties($request);
+            $resource = SpecialtyResource::collection($specialties);
 
-        return $this->successResponse(
-            $resource->items(),
-            'Specialties retrieved successfully',
-            200,
-            [
-                'current_page' => $specialties->currentPage(),
-                'last_page'    => $specialties->lastPage(),
-                'per_page'     => $specialties->perPage(),
-                'total'        => $specialties->total(),
-            ]
-        );
+            return $this->successResponse(
+                $resource->items(),
+                Message::SUCCESS,
+                200,
+                [
+                    'current_page' => $specialties->currentPage(),
+                    'last_page'    => $specialties->lastPage(),
+                    'per_page'     => $specialties->perPage(),
+                    'total'        => $specialties->total(),
+                ]
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 
-    public function store(StoreSpecialtyRequest $request)
+    public function store(StoreSpecialtyRequest $request): JsonResponse
     {
-        $specialty = $this->specialtyService->createSpecialty($request->validated());
-        return $this->successResponse(new SpecialtyResource($specialty), 'Specialty created successfully', 201);
+        try {
+            $specialty = $this->specialtyService->createSpecialty($request->validated());
+
+            return $this->successResponse(
+                new SpecialtyResource($specialty),
+                Message::SUCCESS,
+                201
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 
-    public function show(Specialty $specialty)
+    public function show(Specialty $specialty): JsonResponse
     {
-        return $this->successResponse(new SpecialtyResource($specialty), 'Specialty retrieved successfully');
+        try {
+            return $this->successResponse(
+                new SpecialtyResource($specialty),
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::NOT_FOUND,
+                404
+            );
+        }
     }
 
-    public function update(UpdateSpecialtyRequest $request, Specialty $specialty)
+    public function update(UpdateSpecialtyRequest $request, Specialty $specialty): JsonResponse
     {
-        $updatedSpecialty = $this->specialtyService->updateSpecialty($specialty, $request->validated());
-        return $this->successResponse(new SpecialtyResource($updatedSpecialty), 'Specialty updated successfully');
+        try {
+            $updatedSpecialty = $this->specialtyService->updateSpecialty($specialty, $request->validated());
+
+            return $this->successResponse(
+                new SpecialtyResource($updatedSpecialty),
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 
-    public function destroy(Specialty $specialty)
+    public function destroy(Specialty $specialty): JsonResponse
     {
-        $this->specialtyService->deleteSpecialty($specialty);
-        return $this->successResponse(null, 'Specialty deleted successfully');
+        try {
+            $this->specialtyService->deleteSpecialty($specialty);
+
+            return $this->successResponse(
+                null, 
+                Message::SUCCESS
+            );
+        } catch (Exception $e) {
+            Log::error(Message::ERROR . ': ' . $e->getMessage());
+
+            return $this->errorResponse(
+                Message::INTERNAL_SERVER_ERROR,
+                500
+            );
+        }
     }
 }
