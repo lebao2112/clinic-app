@@ -31,7 +31,7 @@ class ExaminationService
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 15);
+        return $query->orderBy('id', 'desc')->paginate($request->per_page ?? 15);
     }
 
     /**

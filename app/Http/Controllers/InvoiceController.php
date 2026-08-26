@@ -35,7 +35,7 @@ class InvoiceController extends Controller
                     $query->where('invoice_code', 'like', "%{$search}%")
                           ->orWhere('id', 'like', "%{$search}%");
                 })
-                ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
                 ->paginate(15);
 
             $responseData = InvoiceResource::collection($invoices)->response()->getData(true);

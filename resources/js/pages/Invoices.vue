@@ -23,7 +23,7 @@
             <div class="expanded-detail" style="padding: 15px 30px; background-color: #f8fafc; border-radius: 8px;">
               <h4 style="color: #0284c7; margin-top: 0; margin-bottom: 12px;">Chi tiết Hóa đơn: {{ props.row.invoice_code }}</h4>
               
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
                 <div>
                   <span style="font-size: 12px; color: #64748b;">Phí khám bệnh:</span>
                   <div style="font-weight: bold; font-family: monospace;">{{ formatCurrency(props.row.breakdown?.examination_fee || 0) }}</div>
@@ -39,6 +39,14 @@
                 <div>
                   <span style="font-size: 12px; color: #64748b;">Tổng thực thu:</span>
                   <div style="font-weight: bold; font-family: monospace; color: #16a34a;">{{ formatCurrency(props.row.total || 0) }}</div>
+                </div>
+                <div>
+                  <span style="font-size: 12px; color: #64748b;">Đã thanh toán:</span>
+                  <div style="font-weight: bold; font-family: monospace; color: #0284c7;">{{ formatCurrency(props.row.paid_amount || 0) }}</div>
+                </div>
+                <div>
+                  <span style="font-size: 12px; color: #64748b;">Còn lại phải thu:</span>
+                  <div style="font-weight: bold; font-family: monospace; color: #e11d48;">{{ formatCurrency(props.row.remaining_amount ?? (props.row.total - (props.row.paid_amount || 0))) }}</div>
                 </div>
               </div>
 
@@ -60,25 +68,33 @@
         </el-table-column>
 
         <el-table-column prop="id" label="ID" width="70" align="center" />
-        <el-table-column label="Mã Hóa Đơn" min-width="160" align="center">
+        <el-table-column label="Mã Hóa Đơn" min-width="150" align="center">
           <template #default="scope">
             <el-tag type="info">{{ scope.row.invoice_code || 'N/A' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Tạm tính (Subtotal)" width="160" align="right">
-          <template #default="scope"><span style="font-family: monospace;">{{ formatCurrency(scope.row.subtotal) }}</span></template>
-        </el-table-column>
-        <el-table-column label="Giảm giá" width="130" align="right">
-          <template #default="scope"><span style="color: #F56C6C; font-family: monospace;">- {{ formatCurrency(scope.row.discount || 0) }}</span></template>
-        </el-table-column>
-        <el-table-column label="Tổng thực thu" width="160" align="right">
+        <el-table-column label="Tổng thực thu" width="140" align="right">
           <template #default="scope">
             <strong style="color: #10b981; font-family: monospace;">
               {{ formatCurrency(scope.row.total) }}
             </strong>
           </template>
         </el-table-column>
-        <el-table-column label="Trạng thái" width="150" align="center">
+        <el-table-column label="Đã trả" width="130" align="right">
+          <template #default="scope">
+            <span style="color: #0284c7; font-family: monospace;">
+              {{ formatCurrency(scope.row.paid_amount || 0) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Còn lại" width="130" align="right">
+          <template #default="scope">
+            <span style="color: #e11d48; font-family: monospace; font-weight: bold;">
+              {{ formatCurrency(scope.row.remaining_amount ?? (scope.row.total - (scope.row.paid_amount || 0))) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Trạng thái" width="130" align="center">
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)" class="status-tag">{{ getStatusLabel(scope.row.status) }}</el-tag>
           </template>
@@ -93,7 +109,7 @@
                 </el-button>
               </el-tooltip>
               
-              <!-- Nút Chỉnh sửa (ĐÃ THÊM) -->
+              <!-- Nút Chỉnh sửa giảm giá -->
               <el-tooltip content="Chỉnh sửa giảm giá" placement="top">
                 <el-button type="warning" link @click="openEditDialog(scope.row)" :disabled="scope.row.status !== 'unpaid'">
                   <el-icon :size="18"><Edit /></el-icon>
@@ -176,6 +192,30 @@
       </template>
     </el-dialog>
 
+    <!-- Dialog Thanh toán linh hoạt (Thanh toán toàn bộ hoặc một phần) -->
+    <el-dialog v-model="paymentDialogVisible" title="Thanh toán hóa đơn" width="400px" destroy-on-close>
+      <el-form :model="paymentForm" label-position="top">
+        <el-form-item label="Tổng thực thu của hóa đơn:">
+          <div style="font-weight: bold; color: #16a34a; font-size: 15px;">
+            {{ formatCurrency(payingInvoice?.total || 0) }}
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="Số tiền muốn thanh toán (VNĐ)">
+          <el-input v-model.number="paymentForm.amount" placeholder="Nhập số tiền..." size="large" />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="paymentDialogVisible = false" class="btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitPayment" class="btn-add">
+            Tiếp tục thanh toán
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <el-dialog v-model="viewDialogVisible" :title="`Chi tiết Hóa đơn: ${viewingInvoice?.invoice_code || ''}`" width="750px" destroy-on-close>
       <div v-if="viewingInvoice" class="invoice-detail-container">
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
@@ -184,7 +224,9 @@
           <div><strong>Phí khám bệnh:</strong> {{ formatCurrency(viewingInvoice.breakdown?.examination_fee || 0) }}</div>
           <div><strong>Tổng tiền thuốc:</strong> {{ formatCurrency(viewingInvoice.breakdown?.medicine_total || 0) }}</div>
           <div><strong>Giảm giá:</strong> <span style="color: #e11d48;">- {{ formatCurrency(viewingInvoice.discount || 0) }}</span></div>
-          <div><strong>Tổng thực thu:</strong> <strong style="color: #16a34a; font-size: 16px;">{{ formatCurrency(viewingInvoice.total || 0) }}</strong></div>
+          <div><strong>Tổng thực thu:</strong> <strong style="color: #16a34a;">{{ formatCurrency(viewingInvoice.total || 0) }}</strong></div>
+          <div><strong>Đã thanh toán:</strong> <span style="color: #0284c7;">{{ formatCurrency(viewingInvoice.paid_amount || 0) }}</span></div>
+          <div><strong>Còn lại phải thu:</strong> <strong style="color: #e11d48;">{{ formatCurrency(viewingInvoice.remaining_amount ?? (viewingInvoice.total - (viewingInvoice.paid_amount || 0))) }}</strong></div>
         </div>
 
         <h4 style="margin-bottom: 10px; color: #0284c7;">Danh sách thuốc kê đơn:</h4>
@@ -234,6 +276,12 @@ const editForm = reactive({
   discount: 0
 });
 
+const paymentDialogVisible = ref(false);
+const payingInvoice = ref(null);
+const paymentForm = reactive({
+  amount: 0
+});
+
 const availableExaminations = ref([]);
 const loadingExaminations = ref(false);
 
@@ -257,7 +305,7 @@ const getStatusType = (status) => {
 };
 
 const getStatusLabel = (status) => {
-  const map = { 'unpaid': 'UNPAID', 'paid': 'PAID', 'cancelled': 'CANCELLED' };
+  const map = { 'unpaid': 'Chưa thanh toán', 'paid': 'Đã thanh toán', 'cancelled': 'ĐÃ HỦY' };
   return map[status] || status || 'N/A';
 };
 
@@ -390,18 +438,39 @@ const submitEdit = async () => {
     submittingEdit.value = false;
   }
 };
+
 const handleView = (row) => {
   viewingInvoice.value = row;
   viewDialogVisible.value = true;
 };
 
-const handlePayment = async (row) => {
+const handlePayment = (row) => {
+  payingInvoice.value = row;
+  const remaining = row.remaining_amount ?? (row.total - (row.paid_amount || 0));
+  paymentForm.amount = remaining > 0 ? remaining : row.total; // Mặc định điền số tiền còn lại cần trả
+  paymentDialogVisible.value = true;
+};
+
+const submitPayment = async () => {
+  if (!payingInvoice.value) return;
+
+  if (paymentForm.amount <= 0) {
+    ElMessage.error('Số tiền thanh toán phải lớn hơn 0!');
+    return;
+  }
+
+  const remaining = payingInvoice.value.remaining_amount ?? (payingInvoice.value.total - (payingInvoice.value.paid_amount || 0));
+  if (paymentForm.amount > remaining) {
+    ElMessage.error(`Số tiền thanh toán không được vượt quá số tiền còn lại (${formatCurrency(remaining)})!`);
+    return;
+  }
+
   try {
     ElMessage.info('Đang kết nối tới cổng thanh toán PayPal...');
     
-    const response = await axios.post(`/api/invoices/${row.id}/payments`, {
+    const response = await axios.post(`/api/invoices/${payingInvoice.value.id}/payments`, {
       method: 'paypal',
-      amount: row.total
+      amount: paymentForm.amount
     });
     
     const approvalUrl = response.data.approval_url || response.data.data?.approval_url;
@@ -414,6 +483,8 @@ const handlePayment = async (row) => {
   } catch (error) {
     const errorMsg = error.response?.data?.message || 'Không thể khởi tạo giao dịch thanh toán!';
     ElMessage.error(errorMsg);
+  } finally {
+    paymentDialogVisible.value = false;
   }
 };
 

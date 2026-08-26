@@ -32,7 +32,7 @@ class PrescriptionService
             });
         }
 
-        return $query->latest()->paginate($request->input('per_page', 15));
+        return $query->orderBy('id', 'desc')->paginate($request->input('per_page', 15));
     }
 
     /**

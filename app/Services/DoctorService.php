@@ -24,7 +24,7 @@ class DoctorService
             $query->where('specialty_id', $request->specialty_id);
         }
 
-        return $query->orderBy('id', 'desc')->paginate($request->per_page ?? 10);
+        return $query->orderBy('id', 'desc')->paginate($request->per_page ?? 15);
     }
 
     public function createDoctor(array $data)

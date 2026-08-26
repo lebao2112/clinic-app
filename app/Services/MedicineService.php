@@ -21,7 +21,7 @@ class MedicineService
             $query->where('name', 'ilike', '%' . $search . '%')
                   ->orWhere('code', 'ilike', '%' . $search . '%');
         }
-        return $query->orderBy('created_at', 'desc')->paginate($request ? $request->per_page : 15);
+        return $query->orderBy('id', 'desc')->paginate($request ? $request->per_page : 15);
     }
 
     public function createMedicine(array $data): Medicine

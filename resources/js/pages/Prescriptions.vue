@@ -50,7 +50,7 @@
         </el-table-column>
         <el-table-column prop="notes" label="Ghi chú" min-width="200" show-overflow-tooltip />
         
-        <el-table-column label="Ngày kê đơn" width="180" align="center">
+        <el-table-column label="Ngày kê đơn" width="160" align="center">
           <template #default="scope">
             {{ formatDate(scope.row.created_at) }}
           </template>
