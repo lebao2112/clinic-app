@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Constants\Message; 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class EnsurePermission
 {
@@ -31,6 +32,12 @@ class EnsurePermission
             return response()->json(['message' => Message::UNAUTHORIZED], 401);
         }
 
+        // Ép làm mới cache quan hệ role và permissions để luôn lấy dữ liệu mới nhất từ DB
+        $user->unsetRelation('role');
+        if ($user->role) {
+            $user->role->unsetRelation('permissions');
+        }
+
         // 2. Get the current action name from the Route
         $routeAction = $request->route()->getActionName();
 
@@ -44,22 +51,30 @@ class EnsurePermission
 
         // 4. Format the Module name (e.g., PatientController -> PATIENTS)
         $modelName = str_replace('Controller', '', $controllerClass);
-        $module = strtoupper(Str::plural($modelName));
-
-        // 5. Format the Action name using the spec map
-        $mappedAction = $this->actionMap[$method] ?? strtoupper($method);
-
-        // 6. Combine to form the required Permission name (e.g., PATIENTS.FINDALL, PATIENTS.CREATE)
-        $requiredPermission = $module . '.' . $mappedAction;
         
-        if (!$user->role) {
+        // Cố định quyền cho StatsController khớp đúng STATS.SHOW trong RBAC
+        if ($modelName === 'Stats') {
+            $requiredPermission = 'STATS.SHOW';
+        } else {
+            $module = strtoupper(Str::plural($modelName));
+            // 5. Format the Action name using the spec map
+            $mappedAction = $this->actionMap[$method] ?? strtoupper($method);
+            // 6. Combine to form the required Permission name
+            $requiredPermission = $module . '.' . $mappedAction;
+        }
+        
+        if (!$user->role_id) {
             return response()->json([
                 'message' => Message::NO_ROLE_ASSIGNED
             ], 403);
         }
 
-        // 7. Check if the User's Role contains this Permission
-        $hasPermission = $user->role->permissions->contains('name', $requiredPermission);
+        // Check trực tiếp từ database qua bảng trung gian role_permissions để loại bỏ hoàn toàn lỗi kẹt cache hay Eloquent collection
+        $hasPermission = DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $user->role_id)
+            ->where('permissions.name', $requiredPermission)
+            ->exists();
 
         if (!$hasPermission) {
             return response()->json([

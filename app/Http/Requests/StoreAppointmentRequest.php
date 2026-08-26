@@ -11,11 +11,16 @@ class StoreAppointmentRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user() && $this->user()->can('APPOINTMENTS.CREATE');
+        $user = $this->user();
+    
+        if (!$user || !$user->role) {
+        return false;
+        }
+        return $user->role->permissions->contains('name', 'APPOINTMENTS.CREATE');
     }
 
     public function rules()
-    {
+    {   
         return [
             'patient_id'   => 'required|exists:patients,id',
             'doctor_id'    => 'required|exists:doctors,id',

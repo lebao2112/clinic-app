@@ -11,7 +11,13 @@ class ChangeAppointmentStatusRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user() && $this->user()->can('APPOINTMENTS.UPDATE');
+        $user = $this->user();
+    
+        if (!$user || !$user->role) {
+        return false;
+        }
+
+        return $user->role->permissions->contains('name', 'APPOINTMENTS.UPDATESTATUS');
     }
 
     public function rules()
@@ -25,7 +31,7 @@ class ChangeAppointmentStatusRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => Message::FORBIDDEN . 'APPOINTMENTS.UPDATE'
+            'message' => Message::FORBIDDEN . 'APPOINTMENTS.UPDATESTATUS'
         ], 403));
     }
 

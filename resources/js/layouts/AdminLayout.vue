@@ -38,7 +38,7 @@
       >
         <div class="menu-section-title">Tổng quan</div>
 
-        <el-menu-item index="/dashboard" v-if="hasAccess(['ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST', 'CASHIER'])">
+        <el-menu-item index="/dashboard" v-if="currentUser.role && currentUser.role.toUpperCase() === 'ADMIN'">
           <el-icon><Odometer /></el-icon>
           <span>Dashboard</span>
         </el-menu-item>
