@@ -11,7 +11,7 @@ use App\Models\Specialty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\DB; // <-- Thêm thư viện DB
+use Illuminate\Support\Facades\DB; 
 use Tests\TestCase;
 
 class Week2IntegrationTest extends TestCase

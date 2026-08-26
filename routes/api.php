@@ -14,6 +14,7 @@ use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PrescriptionItemController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StatsController;
 
 // Public route for authentication
 Route::post('/login', [AuthController::class, 'login']);
@@ -27,6 +28,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
+    Route::get('/stats', [StatsController::class, 'index'])
+        ->middleware('permission:STATS.SHOW');
+
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
     Route::apiResource('users', UserController::class);
     
@@ -62,10 +66,8 @@ Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () 
         
     Route::delete('/prescription-items/{prescriptionItem}', [PrescriptionItemController::class, 'destroy'])
         ->middleware('permission:PRESCRIPTIONS.REMOVEITEM');
-
     Route::get('/invoices', [InvoiceController::class, 'index'])
         ->middleware('permission:INVOICES.FINDALL');
-
     Route::post('/invoices', [InvoiceController::class, 'store'])
         ->middleware('permission:INVOICES.CREATE');
 
