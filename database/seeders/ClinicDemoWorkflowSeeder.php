@@ -180,7 +180,7 @@ class ClinicDemoWorkflowSeeder extends Seeder
                 'subtotal' => $subtotal,
                 'discount' => 20000,
                 'total' => $total,
-                'status' => rand(0, 1) == 1 ? 'paid' : 'unpaid',
+                'status' => 'unpaid',
                 'issued_at' => now(),
             ]);
         }

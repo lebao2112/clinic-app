@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page" v-loading="loading">
     <div class="page-header">
       <h2 class="title">Bảng Điều Khiển</h2>
       <p class="subtitle">Tổng quan tình hình hoạt động của phòng khám hôm nay</p>
@@ -12,9 +12,9 @@
           <div class="stat-content">
             <div class="stat-info">
               <span class="stat-title">Tổng Bệnh Nhân</span>
-              <h3 class="stat-value">1,284</h3>
+              <h3 class="stat-value">{{ stats.total_patients || 0 }}</h3>
               <span class="stat-trend positive">
-                <el-icon><Top /></el-icon> +12% so với tháng trước
+                <el-icon><Top /></el-icon> Đang quản lý
               </span>
             </div>
             <div class="stat-icon-wrapper bg-blue">
@@ -29,9 +29,9 @@
           <div class="stat-content">
             <div class="stat-info">
               <span class="stat-title">Lịch Hẹn Hôm Nay</span>
-              <h3 class="stat-value">42</h3>
+              <h3 class="stat-value">{{ stats.appointments_today || 0 }}</h3>
               <span class="stat-trend positive">
-                <el-icon><Top /></el-icon> +5 ca mới
+                <el-icon><Calendar /></el-icon> Đã xác nhận
               </span>
             </div>
             <div class="stat-icon-wrapper bg-green">
@@ -45,8 +45,8 @@
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
             <div class="stat-info">
-              <span class="stat-title">Bác Sĩ Trực</span>
-              <h3 class="stat-value">8</h3>
+              <span class="stat-title">Tổng Số Bác Sĩ</span>
+              <h3 class="stat-value">{{ stats.total_doctors || 0 }}</h3>
               <span class="stat-trend neutral">
                 <el-icon><Check /></el-icon> Đang hoạt động
               </span>
@@ -62,10 +62,10 @@
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
             <div class="stat-info">
-              <span class="stat-title">Doanh Thu (Ngày)</span>
-              <h3 class="stat-value">24.5M</h3>
-              <span class="stat-trend negative">
-                <el-icon><Bottom /></el-icon> -2% so với hôm qua
+              <span class="stat-title">Doanh Thu (Tháng)</span>
+              <h3 class="stat-value">{{ formatCurrency(stats.monthly_revenue || 0) }}</h3>
+              <span class="stat-trend positive">
+                <el-icon><Money /></el-icon> Thực tế
               </span>
             </div>
             <div class="stat-icon-wrapper bg-orange">
@@ -77,27 +77,44 @@
     </el-row>
 
     <el-row :gutter="24" class="main-dashboard-row">
-      <!-- Cột Trái: Biểu đồ (Placeholder) -->
+      <!-- Cột Trái: Biểu đồ 2 cột song song (Lượt khám & Hoạt động) -->
       <el-col :xs="24" :lg="16">
         <el-card class="box-card chart-card" shadow="never">
           <template #header>
             <div class="card-header">
-              <span class="card-title">Thống kê Lượt khám (Tuần)</span>
-              <el-button type="primary" link>Xem chi tiết</el-button>
+              <span class="card-title">Thống kê Lượt khám & Hoạt động (7 ngày qua)</span>
+              <div class="chart-legend">
+                <span class="legend-item"><i class="dot blue"></i> Lượt khám</span>
+                <span class="legend-item"><i class="dot green"></i> Hoạt động</span>
+              </div>
+              <el-button type="primary" link @click="fetchDashboardData">Làm mới</el-button>
             </div>
           </template>
           <div class="chart-placeholder">
-            <!-- Khu vực này sau này bạn có thể cài thêm thư viện ECharts hoặc Chart.js để vẽ đồ thị -->
-            <div class="mock-bars">
-              <div class="bar" style="height: 60%;"></div>
-              <div class="bar" style="height: 80%;"></div>
-              <div class="bar" style="height: 40%;"></div>
-              <div class="bar" style="height: 90%;"></div>
-              <div class="bar" style="height: 50%;"></div>
-              <div class="bar" style="height: 70%;"></div>
-              <div class="bar" style="height: 100%;"></div>
+            <div class="mock-bars" v-if="weeklyStats.length > 0">
+              <div 
+                class="bar-group" 
+                v-for="(item, index) in weeklyStats" 
+                :key="index"
+              >
+                <div class="dual-bars">
+                  <!-- Cột Lượt khám -->
+                  <div class="bar-wrapper" :title="`${item.date}: ${item.examinations} lượt khám`">
+                    <div class="bar exam-bar" :style="{ height: getBarHeight(item.examinations) }">
+                      <span class="bar-tooltip">{{ item.examinations }}</span>
+                    </div>
+                  </div>
+                  <!-- Cột Hoạt động -->
+                  <div class="bar-wrapper" :title="`${item.date}: ${item.activities} hoạt động`">
+                    <div class="bar activity-bar" :style="{ height: getBarHeight(item.activities) }">
+                      <span class="bar-tooltip">{{ item.activities }}</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="bar-label">{{ formatShortDate(item.date) }}</span>
+              </div>
             </div>
-            <p class="chart-note">Vùng hiển thị Biểu đồ (Chart Area)</p>
+            <p class="chart-note" style="margin-top: 15px;">So sánh số lượng Lượt khám và Hoạt động hệ thống theo ngày</p>
           </div>
         </el-card>
       </el-col>
@@ -106,20 +123,24 @@
         <el-card class="box-card timeline-card" shadow="never">
           <template #header>
             <div class="card-header">
-              <span class="card-title">Hoạt động mới nhất</span>
+              <span class="card-title">Hoạt động hệ thống</span>
             </div>
           </template>
-          <el-timeline>
-            <el-timeline-item
-              v-for="(activity, index) in recentActivities"
-              :key="index"
-              :type="activity.type"
-              :color="activity.color"
-              :timestamp="activity.time"
-            >
-              {{ activity.content }}
-            </el-timeline-item>
-          </el-timeline>
+          <el-scrollbar height="300px">
+            <el-timeline v-if="recentActivities.length > 0">
+              <el-timeline-item
+                v-for="(activity, index) in recentActivities"
+                :key="index"
+                type="primary"
+                :timestamp="formatDate(activity.created_at)"
+              >
+                <div class="activity-text">
+                  {{ formatActivityText(activity) }}
+                </div>
+              </el-timeline-item>
+            </el-timeline>
+            <el-empty v-else description="Chưa có hoạt động nào gần đây" />
+          </el-scrollbar>
         </el-card>
       </el-col>
     </el-row>
@@ -127,35 +148,124 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import { User, Calendar, Avatar, Money, Top, Bottom, Check } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 
-const recentActivities = ref([
-  {
-    content: 'Bệnh nhân Nguyễn Văn A đã hoàn tất thanh toán',
-    time: '10 phút trước',
-    type: 'success',
-    color: '#10b981'
-  },
-  {
-    content: 'Lễ tân đã thêm mới 1 lịch hẹn lúc 14:00',
-    time: '35 phút trước',
-    type: 'primary',
-    color: '#0ea5e9'
-  },
-  {
-    content: 'Bác sĩ Lê C cập nhật hồ sơ bệnh án mã #BA092',
-    time: '1 giờ trước',
-    type: 'warning',
-    color: '#f59e0b'
-  },
-  {
-    content: 'Hủy lịch hẹn khám chuyên khoa Mắt',
-    time: '2 giờ trước',
-    type: 'danger',
-    color: '#ef4444'
+const loading = ref(false);
+const stats = ref({
+  total_patients: 0,
+  appointments_today: 0,
+  total_doctors: 0,
+  monthly_revenue: 0
+});
+
+const recentActivities = ref([]);
+const weeklyStats = ref([]);
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleString('vi-VN');
+};
+
+const formatShortDate = (dateString) => {
+  if (!dateString) return '';
+  const parts = dateString.split('-');
+  return `${parts[2]}/${parts[1]}`;
+};
+
+const getBarHeight = (count) => {
+  if (!weeklyStats.value.length) return '15%';
+  const allCounts = weeklyStats.value.flatMap(i => [i.examinations, i.activities]);
+  const max = Math.max(...allCounts, 5);
+  const height = (count / max) * 100;
+  return Math.max(height, 12) + '%';
+};
+
+const formatActivityText = (activity) => {
+  const action = (activity.action || '').toUpperCase();
+  const subject = (activity.subject_type || '').toLowerCase();
+  const id = activity.subject_id;
+  const meta = activity.meta || {};
+
+  if (subject === 'payment' || subject === 'invoice') {
+    if (meta.is_partial || meta.status === 'partial' || (meta.paid_amount && meta.total_amount && meta.paid_amount < meta.total_amount)) {
+      const paid = meta.paid_amount ? formatCurrency(meta.paid_amount) : '';
+      return `Đã thanh toán một phần ${paid ? '(' + paid + ')' : ''} cho hóa đơn (Mã: ${id})`;
+    }
+
+    if (action === 'PAYMENT_PROCESSED' || action === 'CREATED' || meta.status === 'completed') {
+      return `Đã thanh toán thành công hóa đơn (Mã: ${id})`;
+    }
+    
+    if (action === 'STATUS_CHANGED' || action === 'UPDATED') {
+      return `Đã cập nhật trạng thái thanh toán của hóa đơn (Mã: ${id})`;
+    }
   }
-]);
+
+  if (subject === 'appointment') {
+    if (action === 'STATUS_CHANGED') {
+      return `Đã cập nhật trạng thái lịch hẹn khám (Mã lịch hẹn: ${id})`;
+    }
+    if (action === 'CREATED') {
+      return `Đã tạo lịch hẹn khám bệnh mới (Mã: ${id})`;
+    }
+  }
+
+  if (subject === 'patient') {
+    return `Đã thêm mới hồ sơ bệnh nhân (Mã: ${id})`;
+  }
+
+  if (subject === 'doctor') {
+    return `Đã cập nhật thông tin bác sĩ (Mã: ${id})`;
+  }
+
+  if (subject === 'user') {
+    return `Đã đăng ký tài khoản hệ thống mới (Mã: ${id})`;
+  }
+
+  const actionsMap = {
+    'REGISTERED': 'đã đăng ký',
+    'CREATED': 'đã thêm mới',
+    'UPDATED': 'đã cập nhật',
+    'DELETED': 'đã xóa',
+    'STATUS_CHANGED': 'đã thay đổi trạng thái'
+  };
+  
+  const actionText = actionsMap[action] || action;
+  return `Đã ${actionText} đối tượng ${subject} (Mã ID: ${id})`;
+};
+
+const fetchDashboardData = async () => {
+  loading.value = true;
+  try {
+    const response = await axios.get('/api/stats');
+    if (response.data && response.data.success) {
+      stats.value = response.data.data;
+      if (response.data.data.recent_activities) {
+        recentActivities.value = response.data.data.recent_activities;
+      }
+      if (response.data.data.weekly_stats) {
+        weeklyStats.value = response.data.data.weekly_stats;
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải dữ liệu dashboard:', error);
+    ElMessage.error('Không thể tải dữ liệu thống kê từ hệ thống!');
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchDashboardData();
+});
 </script>
 
 <style scoped>
@@ -198,7 +308,7 @@ const recentActivities = ref([
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: #0f172a;
   margin: 8px 0;
@@ -242,6 +352,27 @@ const recentActivities = ref([
   color: #0f172a;
 }
 
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  align-items: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot.blue { background: #0284c7; }
+.dot.green { background: #10b981; }
+
 .chart-card, .timeline-card {
   height: 400px;
 }
@@ -260,20 +391,75 @@ const recentActivities = ref([
 .mock-bars {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  height: 150px;
-  width: 80%;
-  margin-bottom: 16px;
+  justify-content: space-around;
+  height: 160px;
+  width: 95%;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
-.mock-bars .bar {
+.bar-group {
   flex: 1;
-  background: linear-gradient(to top, #bae6fd, #38bdf8);
-  border-radius: 6px 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.dual-bars {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  position: relative;
   transition: all 0.3s ease;
 }
-.mock-bars .bar:hover {
-  background: linear-gradient(to top, #7dd3fc, #0284c7);
+
+.exam-bar {
+  background: linear-gradient(to top, #38bdf8, #0284c7);
+}
+.exam-bar:hover {
+  background: linear-gradient(to top, #7dd3fc, #0369a1);
+}
+
+.activity-bar {
+  background: linear-gradient(to top, #34d399, #059669);
+}
+.activity-bar:hover {
+  background: linear-gradient(to top, #6ee7b7, #047857);
+}
+
+.bar-tooltip {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  color: #334155;
+}
+
+.bar-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 6px;
 }
 
 .chart-note {
@@ -282,10 +468,15 @@ const recentActivities = ref([
   font-weight: 500;
 }
 
-:deep(.el-timeline-item__content) {
+.activity-text {
   font-size: 13px;
   color: #334155;
   font-weight: 500;
+}s
+
+:deep(.el-timeline-item__content) {
+  font-size: 13px;
+  color: #334155;
 }
 :deep(.el-timeline-item__timestamp) {
   font-size: 12px;
