@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule; 
 
 class StorePrescriptionRequest extends FormRequest
 {
@@ -16,7 +17,12 @@ class StorePrescriptionRequest extends FormRequest
         $prescriptionId = $this->route('prescription') ?? $this->route('id');
 
         return [
-            'examination_id' => 'sometimes|required|exists:examinations,id|unique:prescriptions,examination_id,' . $prescriptionId,
+            'examination_id' => [
+                'sometimes',
+                'required',
+                'exists:examinations,id',
+                Rule::unique('prescriptions', 'examination_id')->ignore($prescriptionId)
+            ],
             'notes' => 'nullable|string',
             'items' => 'nullable|array',
             'items.*.medicine_id' => 'required_with:items|exists:medicines,id|distinct',

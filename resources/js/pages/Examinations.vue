@@ -37,7 +37,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="diagnosis" label="Chẩn đoán" min-width="220" show-overflow-tooltip />
-        <el-table-column prop="examined_at" label="Thời gian khám" width="180" align="center" />
+        <el-table-column prop="examined_at" label="Thời gian khám" width="160" align="center" />
         <el-table-column label="Thao tác" width="140" align="center" fixed="right">
           <template #default="scope">
             <div class="action-buttons">

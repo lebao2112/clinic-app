@@ -32,7 +32,7 @@ class AppointmentService
             $query->where('status', $request->status);
         }
 
-        return $query->orderBy('scheduled_at', 'desc')->paginate($request->per_page ?? 15);
+        return $query->orderBy('id', 'desc')->paginate($request->per_page ?? 15);
     }
 
     public function createAppointment(array $data)

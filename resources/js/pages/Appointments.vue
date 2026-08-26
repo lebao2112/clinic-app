@@ -27,29 +27,28 @@
         <el-table-column label="Bác sĩ phụ trách" min-width="180">
           <template #default="scope"><span class="user-name">{{ scope.row.doctor?.user?.name || scope.row.doctor?.name || 'Chưa phân công' }}</span></template>
         </el-table-column>
-        <el-table-column label="Thời gian hẹn" width="180" align="center">
+        <el-table-column label="Thời gian hẹn" width="160" align="center">
           <template #default="scope"><span class="contact-info"><el-icon class="icon-contact"><Clock /></el-icon> {{ scope.row.scheduled_at || 'N/A' }}</span></template>
         </el-table-column>
         
-        <!-- TRẠNG THÁI: Tích hợp Dropdown bấm trực tiếp ngay ngoài bảng -->
         <el-table-column label="Trạng thái" width="160" align="center">
           <template #default="scope">
             <el-dropdown trigger="click" @command="(cmd) => handleStatusChange(scope.row.id, cmd)">
               <span class="el-dropdown-link" style="cursor: pointer;">
                 <el-tag :type="getStatusType(scope.row.status)" class="status-tag">
-                  {{ scope.row.status }} <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                  {{ statusMap[scope.row.status] || scope.row.status }} <el-icon class="el-icon--right"><ArrowDown /></el-icon>
                 </el-tag>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="confirmed" :disabled="!canTransition(scope.row.status, 'confirmed')">
-                    👉 Đổi thành: confirmed
+                    👉 Đổi thành: Đã xác nhận
                   </el-dropdown-item>
                   <el-dropdown-item command="completed" :disabled="!canTransition(scope.row.status, 'completed')">
-                    ✅ Đổi thành: completed
+                    ✅ Đổi thành: Đã hoàn thành
                   </el-dropdown-item>
                   <el-dropdown-item command="cancelled" :disabled="!canTransition(scope.row.status, 'cancelled')" style="color: #ef4444;">
-                    ❌ Đổi thành: cancelled
+                    ❌ Đổi thành: Đã hủy
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -163,6 +162,13 @@ const rules = {
 const getStatusType = (status) => {
   const map = { 'scheduled': 'warning', 'confirmed': 'primary', 'completed': 'success', 'cancelled': 'danger' };
   return map[status] || 'info';
+};
+
+const statusMap = {
+  'scheduled': 'Đã lên lịch',
+  'confirmed': 'Đã xác nhận',
+  'completed': 'Đã hoàn thành',
+  'cancelled': 'Đã hủy'
 };
 
 const canTransition = (current, target) => {

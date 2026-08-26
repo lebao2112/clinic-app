@@ -47,6 +47,9 @@ class InvoiceResource extends JsonResource
 
         $examinationFee = (float) env('EXAMINATION_FEE', 100000);
 
+        $paidAmount = $this->payments()->where('status', 'completed')->sum('amount');
+        $remainingAmount = max($this->total - $paidAmount, 0);
+
         return [
             'id'             => $this->id,
             'invoice_code'   => $this->invoice_code,
@@ -54,6 +57,8 @@ class InvoiceResource extends JsonResource
             'subtotal'       => $this->subtotal,
             'discount'       => $this->discount,
             'total'          => $this->total,
+            'paid_amount'    => $paidAmount,     
+            'remaining_amount' => $remainingAmount,
             'status'         => $this->status,
             'issued_at'      => $this->issued_at,
             'created_at'     => $this->created_at,

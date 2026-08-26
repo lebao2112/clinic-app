@@ -4,7 +4,17 @@
     <el-aside :width="sidebarCollapsed ? '76px' : '260px'" class="aside-menu" :class="{ 'is-collapsed': sidebarCollapsed }">
       <div class="sidebar-logo">
         <div class="brand-mark">
-          <span class="logo-dot"></span>
+          <div class="hospital-logo" aria-label="ClinicManagement">
+            <svg viewBox="0 0 48 48" role="img" aria-hidden="true">
+              <rect x="8" y="17" width="32" height="24" rx="4" class="hospital-body"/>
+              <rect x="16" y="7" width="16" height="13" rx="2.5" class="hospital-roof"/>
+              <path d="M24 10v7M20.5 13.5h7" class="hospital-cross"/>
+              <rect x="12.5" y="24" width="6.5" height="6.5" rx="1.2" class="hospital-window"/>
+              <rect x="29" y="24" width="6.5" height="6.5" rx="1.2" class="hospital-window"/>
+              <rect x="21" y="31" width="6" height="10" rx="1.2" class="hospital-door"/>
+              <path d="M5 41h38" class="hospital-base"/>
+            </svg>
+          </div>
           <span class="logo-text">ClinicHub</span>
         </div>
 
@@ -557,13 +567,56 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
 }
-.logo-dot {
-  width: 12px;
-  height: 12px;
-  background: linear-gradient(135deg, #38bdf8, #0284c7);
-  border-radius: 4px;
+
+.hospital-logo {
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.hospital-logo svg {
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+
+.hospital-body {
+  fill: #eaf6ff;
+  stroke: #0ea5e9;
+  stroke-width: 2;
+}
+
+.hospital-roof {
+  fill: #ffffff;
+  stroke: #0284c7;
+  stroke-width: 2;
+}
+
+.hospital-cross {
+  fill: none;
+  stroke: #0284c7;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.hospital-window {
+  fill: #38bdf8;
+}
+
+.hospital-door {
+  fill: #0284c7;
+}
+
+.hospital-base {
+  fill: none;
+  stroke: #0284c7;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
 .logo-text {
   font-size: 20px;
   font-weight: 800;
@@ -635,7 +688,7 @@ onUnmounted(() => {
 .custom-menu :deep(.el-menu-item.is-active .el-icon) { color: #0284c7 !important; }
 .aside-menu.is-collapsed .logo-text { width: 0; opacity: 0; overflow: hidden; }
 .aside-menu.is-collapsed .sidebar-logo { justify-content: center; padding: 0 8px; }
-.aside-menu.is-collapsed .brand-mark { justify-content: center; }
+.aside-menu.is-collapsed .brand-mark { justify-content: center; gap: 0; }
 .aside-menu.is-collapsed .menu-section-title { opacity: 0; height: 6px; padding: 0; overflow: hidden; }
 .aside-menu.is-collapsed .custom-menu { padding-left: 10px; padding-right: 10px; }
 .custom-menu.el-menu--collapse { width: 100% !important; }

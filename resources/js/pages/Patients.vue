@@ -27,7 +27,7 @@
         <el-table-column label="Giới tính" width="100" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.gender === 'male' || scope.row.gender === 'Nam' ? 'primary' : 'danger'" class="status-tag">
-              {{ scope.row.gender }}
+              {{ scope.row.gender === 'male' ? 'Nam' : (scope.row.gender === 'female' ? 'Nữ' : scope.row.gender) }}
             </el-tag>
           </template>
         </el-table-column>
