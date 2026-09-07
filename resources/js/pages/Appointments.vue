@@ -72,7 +72,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA LỊCH HẸN -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa Lịch hẹn khám' : 'Thêm Lịch hẹn mới'" width="500px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="Chọn Bệnh nhân" prop="patient_id">

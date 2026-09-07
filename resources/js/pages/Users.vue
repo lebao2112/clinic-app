@@ -29,7 +29,6 @@
           </template>
         </el-table-column>
         
-        <!-- CỘT TRẠNG THÁI -->
         <el-table-column label="Trạng thái" width="130" align="center">
           <template #default="scope">
             <el-tag :type="isAccountLocked(scope.row) ? 'danger' : 'success'">
@@ -47,7 +46,6 @@
                 </el-button>
               </el-tooltip>
               
-              <!-- NÚT KHÓA / MỞ KHÓA -->
               <el-tooltip :content="isAccountLocked(scope.row) ? 'Mở khóa tài khoản' : 'Khóa tài khoản'" placement="top">
                 <el-button :type="isAccountLocked(scope.row) ? 'success' : 'danger'" link @click="handleToggleLock(scope.row)">
                   <el-icon :size="18">
@@ -229,7 +227,6 @@ const handleToggleLock = (row) => {
       try {
         await axios.patch(`/api/users/${row.id}/status`, { is_active: newIsActiveState });
         
-        // Ép cập nhật state cục bộ ngay lập tức để UI thay đổi mượt mà không cần chờ reload
         row.is_active = newIsActiveState ? 1 : 0; 
         
         ElMessage.success(`Đã ${actionText} thành công!`);

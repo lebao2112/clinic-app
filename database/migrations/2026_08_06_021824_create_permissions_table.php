@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            // unique() để đảm bảo name (dạng CONTROLLER.ACTION) không bị trùng
             $table->string('name')->unique(); 
             $table->timestamps();
         });

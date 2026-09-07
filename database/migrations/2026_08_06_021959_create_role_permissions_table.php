@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->foreignId('permission_id')->constrained('permissions')->onDelete('cascade');
             $table->timestamps();
-
-            // Ràng buộc UNIQUE kép theo đúng yêu cầu đề bài
             $table->unique(['role_id', 'permission_id']);
         });
     }

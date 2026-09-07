@@ -13,7 +13,6 @@
           <p class="brand-slogan">Hệ thống quản lý phòng khám chuyên nghiệp,<br>minh bạch và tận tâm.</p>
         </div>
 
-        <!-- Khung chứa ảnh -->
         <div class="illustration-box">
           <img :src="'/images/image.jpeg'" alt="Medical Illustration" />
         </div>

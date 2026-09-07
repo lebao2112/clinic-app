@@ -23,7 +23,6 @@
             <el-icon><Phone /></el-icon>
             <span>1900 1234</span>
           </div>
-          <!-- Nút Đăng nhập gọi chính xác route /login -->
           <el-button plain class="btn-login" @click="goToLogin">Đăng nhập</el-button>
           <el-button type="primary" class="btn-book" @click="openBookingDialog()">Đặt lịch khám</el-button>
         </div>

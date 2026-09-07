@@ -18,7 +18,6 @@
       </div>
 
       <el-table v-loading="loading" :data="prescriptions" class="custom-table" style="width: 100%">
-        <!-- Nút Expand để xem chi tiết các thuốc trong đơn -->
         <el-table-column type="expand">
           <template #default="props">
             <div class="expanded-detail">

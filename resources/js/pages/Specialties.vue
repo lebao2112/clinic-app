@@ -37,7 +37,6 @@
       </div>
     </el-card>
 
-    <!-- DIALOG THÊM / SỬA -->
     <el-dialog v-model="dialogVisible" :title="isEditMode ? 'Chỉnh sửa Chuyên khoa' : 'Thêm Chuyên khoa mới'" width="450px" destroy-on-close>
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-form-item label="Tên Chuyên Khoa" prop="name">
