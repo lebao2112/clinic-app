@@ -74,7 +74,6 @@ class PermissionSeeder extends Seeder
             'PRESCRIPTIONS.ADDITEM'   => ['ADMIN', 'DOCTOR'],
             'PRESCRIPTIONS.UPDATEITEM'=> ['ADMIN', 'DOCTOR'],
             'PRESCRIPTIONS.REMOVEITEM'=> ['ADMIN', 'DOCTOR'],
-            'PRESCRIPTIONS.DISPENSE'  => ['ADMIN', 'PHARMACIST'], 
 
             // Invoices
             'INVOICES.FINDALL'      => ['ADMIN', 'CASHIER'],
