@@ -6,7 +6,6 @@
     </div>
 
     <el-row :gutter="24" class="stat-cards-row">
-      <!-- Thẻ Bệnh nhân -->
       <el-col :xs="24" :sm="12" :lg="6">
         <el-card class="box-card stat-card" shadow="hover">
           <div class="stat-content">
@@ -77,7 +76,6 @@
     </el-row>
 
     <el-row :gutter="24" class="main-dashboard-row">
-      <!-- Cột Trái: Biểu đồ 2 cột song song (Lượt khám & Hoạt động) -->
       <el-col :xs="24" :lg="16">
         <el-card class="box-card chart-card" shadow="never">
           <template #header>
@@ -98,13 +96,11 @@
                 :key="index"
               >
                 <div class="dual-bars">
-                  <!-- Cột Lượt khám -->
                   <div class="bar-wrapper" :title="`${item.date}: ${item.examinations} lượt khám`">
                     <div class="bar exam-bar" :style="{ height: getBarHeight(item.examinations) }">
                       <span class="bar-tooltip">{{ item.examinations }}</span>
                     </div>
                   </div>
-                  <!-- Cột Hoạt động -->
                   <div class="bar-wrapper" :title="`${item.date}: ${item.activities} hoạt động`">
                     <div class="bar activity-bar" :style="{ height: getBarHeight(item.activities) }">
                       <span class="bar-tooltip">{{ item.activities }}</span>

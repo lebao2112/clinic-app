@@ -102,28 +102,24 @@
         <el-table-column label="Thao tác" width="200" align="center" fixed="right">
           <template #default="scope">
             <div class="action-buttons">
-              <!-- Nút Xem chi tiết -->
               <el-tooltip content="Xem chi tiết hóa đơn" placement="top">
                 <el-button type="primary" link @click="handleView(scope.row)">
                   <el-icon :size="18"><View /></el-icon>
                 </el-button>
               </el-tooltip>
               
-              <!-- Nút Chỉnh sửa giảm giá -->
               <el-tooltip content="Chỉnh sửa giảm giá" placement="top">
                 <el-button type="warning" link @click="openEditDialog(scope.row)" :disabled="scope.row.status !== 'unpaid'">
                   <el-icon :size="18"><Edit /></el-icon>
                 </el-button>
               </el-tooltip>
 
-              <!-- Nút Thanh toán -->
               <el-tooltip content="Thanh toán qua PayPal" placement="top">
                 <el-button type="success" link @click="handlePayment(scope.row)" :disabled="scope.row.status !== 'unpaid'">
                   <el-icon :size="18"><Money /></el-icon>
                 </el-button>
               </el-tooltip>
               
-              <!-- Nút Hủy hóa đơn -->
               <el-tooltip content="Hủy hóa đơn" placement="top">
                 <el-button type="danger" link @click="handleCancel(scope.row)" :disabled="scope.row.status !== 'unpaid'">
                   <el-icon :size="18"><Delete /></el-icon>
@@ -192,7 +188,6 @@
       </template>
     </el-dialog>
 
-    <!-- Dialog Thanh toán linh hoạt (Thanh toán toàn bộ hoặc một phần) -->
     <el-dialog v-model="paymentDialogVisible" title="Thanh toán hóa đơn" width="400px" destroy-on-close>
       <el-form :model="paymentForm" label-position="top">
         <el-form-item label="Tổng thực thu của hóa đơn:">
@@ -447,7 +442,7 @@ const handleView = (row) => {
 const handlePayment = (row) => {
   payingInvoice.value = row;
   const remaining = row.remaining_amount ?? (row.total - (row.paid_amount || 0));
-  paymentForm.amount = remaining > 0 ? remaining : row.total; // Mặc định điền số tiền còn lại cần trả
+  paymentForm.amount = remaining > 0 ? remaining : row.total;
   paymentDialogVisible.value = true;
 };
 

@@ -32,7 +32,6 @@ class EnsurePermission
             return response()->json(['message' => Message::UNAUTHORIZED], 401);
         }
 
-        // Ép làm mới cache quan hệ role và permissions để luôn lấy dữ liệu mới nhất từ DB
         $user->unsetRelation('role');
         if ($user->role) {
             $user->role->unsetRelation('permissions');
@@ -52,7 +51,6 @@ class EnsurePermission
         // 4. Format the Module name (e.g., PatientController -> PATIENTS)
         $modelName = str_replace('Controller', '', $controllerClass);
         
-        // Cố định quyền cho StatsController khớp đúng STATS.SHOW trong RBAC
         if ($modelName === 'Stats') {
             $requiredPermission = 'STATS.SHOW';
         } else {
@@ -69,7 +67,6 @@ class EnsurePermission
             ], 403);
         }
 
-        // Check trực tiếp từ database qua bảng trung gian role_permissions để loại bỏ hoàn toàn lỗi kẹt cache hay Eloquent collection
         $hasPermission = DB::table('role_permissions')
             ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
             ->where('role_permissions.role_id', $user->role_id)
