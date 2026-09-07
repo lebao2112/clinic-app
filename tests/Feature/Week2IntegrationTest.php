@@ -61,6 +61,43 @@ class Week2IntegrationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_locking_user_revokes_existing_tokens(): void
+    {
+        $role = Role::create(['name' => 'Test Role ' . uniqid()]);
+        $user = User::factory()->create(['role_id' => $role->id]);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/me');
+
+        $response->assertStatus(200);
+
+        app(\App\Services\UserService::class)->updateStatus($user, false);
+
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+        ]);
+
+        $this->app['auth']->forgetGuards();
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/me');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_inactive_user_is_blocked_even_with_a_valid_token(): void
+    {
+        $user = User::factory()->create(['is_active' => false]);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/me');
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', \App\Constants\Message::ACCOUNT_LOCKED);
+    }
+
     /**
      * Test user without permission receives 403 Forbidden.
      */

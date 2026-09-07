@@ -59,6 +59,11 @@ class UserService
         $this->ensureNotLastAdmin($user, $user->role_id, $isActive);
 
         $user->update(['is_active' => $isActive]);
+
+        if (!$isActive) {
+            $user->tokens()->delete();
+        }
+
         return $user;
     }
 

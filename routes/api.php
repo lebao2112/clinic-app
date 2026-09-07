@@ -22,16 +22,16 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/payment/return', [PaymentController::class, 'handleReturn']);
 Route::get('/payment/cancel', [PaymentController::class, 'handleCancel']);
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
+Route::middleware(['auth:sanctum', 'active', EnsurePermission::class])->group(function () {
     Route::get('/stats', [StatsController::class, 'index']);
 });
 
-Route::middleware(['auth:sanctum', EnsurePermission::class])->group(function () {
+Route::middleware(['auth:sanctum', 'active', EnsurePermission::class])->group(function () {
     Route::patch('users/{user}/status', [UserController::class, 'updateStatus']);
     Route::apiResource('users', UserController::class);
     
