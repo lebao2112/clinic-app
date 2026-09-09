@@ -300,7 +300,7 @@ const getStatusType = (status) => {
 };
 
 const getStatusLabel = (status) => {
-  const map = { 'unpaid': 'Chưa thanh toán', 'paid': 'Đã thanh toán', 'cancelled': 'ĐÃ HỦY' };
+  const map = { 'unpaid': 'Chưa thanh toán', 'paid': 'Đã thanh toán', 'cancelled': 'Đã hủy' };
   return map[status] || status || 'N/A';
 };
 
